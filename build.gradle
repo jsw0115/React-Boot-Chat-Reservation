@@ -1,0 +1,53 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+// lombok은 Maven 레포지토리에서 가져오기 때문에 build.gradle에 아래 구문을 추가
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// JPA
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// Thymeleaf
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	// web
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// lombok
+	// DTO 어노테이션을 줄이기 위한 롬복 라이브러리
+	compileOnly 'org.projectlombok:lombok'
+	// devTools
+	// 파일 수정 시 재시작하지 않고 자동 컴파일 될 수 있도록 하기위한 라이브러리
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	//MySql
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	annotationProcessor 'org.projectlombok:lombok'
+	// 웹소켓을 사용하기 위한 라이브러리
+	implementation 'org.springframework.boot:spring-boot-starter-websocket:3.3.2'
+	// security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	implementation 'org.springframework.security:spring-security-crypto:5.7.1'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
