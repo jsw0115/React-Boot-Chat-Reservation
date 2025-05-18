@@ -41,6 +41,7 @@ public enum UserRole {
     /**
      * short 값을 이용해 enum 찾기
      *
+     * @param code
      * @return UserRole
      */
     public static UserRole fromCode(short code) {

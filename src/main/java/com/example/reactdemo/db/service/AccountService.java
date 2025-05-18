@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
  * */
 @Service
 @RequiredArgsConstructor
-public class AccountService implements UserDetailsService {
+public class AccountService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -24,7 +24,7 @@ public class AccountService implements UserDetailsService {
      *  user
      *
      */
-    @Override
+    //@Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         User user = new User();
