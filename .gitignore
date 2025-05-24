@@ -35,3 +35,42 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# === Java & Spring Boot ===
+/target/
+*.class
+*.jar
+*.war
+*.log
+
+# === Maven / Gradle ===
+/pom.xml.tag
+/pom.xml.releaseBackup
+/pom.xml.versionsBackup
+/logs/
+/build/
+/.gradle/
+/out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# === IntelliJ IDEA ===
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# === Node.js (React) ===
+/src/main/frontend/node_modules/
+/src/main/frontend/build/
+/src/main/frontend/dist/
+/src/main/frontend/.env.local
+/src/main/frontend/.env.development.local
+/src/main/frontend/.env.test.local
+/src/main/frontend/.env.production.local
+
+# === Logs ===
+*.log
+
+# === Environment Files ===
+.env
+.env.*
