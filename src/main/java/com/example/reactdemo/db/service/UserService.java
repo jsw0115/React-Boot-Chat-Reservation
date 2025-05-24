@@ -2,8 +2,11 @@ package com.example.reactdemo.db.service;
 
 import com.example.reactdemo.db.repository.UserRepository;
 import com.example.reactdemo.enums.UserRole;
+import com.example.reactdemo.util.helper.UtcHelper;
+import com.example.reactdemo.util.security.PasswordEncryptor;
 import com.example.reactdemo.web.model.dto.CustomUserDetails;
 import com.example.reactdemo.web.model.entity.User;
+import com.example.reactdemo.web.model.models.JsonResultApiModel;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.Optional;
 
 /**
@@ -27,178 +31,104 @@ public class UserService{
 
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
-
-    /**
-     *
-     */
-    public String register (User user) {
-
-        if (userRepository.existsByUserAccountId(user.getUserAccountId())) {
-            return "duplication";
-        }
-        user.setPassword(user.getPassword());
-        userRepository.save(user);
-        return "success";
-    }
-
-    /**
-     *
-     */
-    public boolean login (String userAccountId, String password) {
-
-        Optional<User> user = userRepository.findByUserAccountId(userAccountId);
-        if (user.isPresent()) {
-
-            return encoder.matches(password, user.get().getPassword());
-        } else {
-            return false;
-        }
-    }
-
-    //    @Autowired
-//    private UserRepository userRepository;
-//    private final PasswordEncoder encoder;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-//    /**
-//     * SpringSecurity에서 생성한 Bean 사용
-//     * @since 2025.05.17
-//     * */
-//    public UserService (PasswordEncoder encoder) {
-//        this.encoder = encoder;
-//    }
-//
-//    /**
-//     * userAccountId로 User 찾기
-//     * @since 2025.05.17
-//     *
-//     * @param userAccountId
-//     * @return UserDetails
-//     * */
-//    public UserDetails getUser(String userAccountId) {
-//
-//        logger.info("UserService, getUser");
-//        User user = new User();
-//        try {
-//
-//            user = userRepository.findByUserAccountId(userAccountId)
-//                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-//        } catch (Exception e) {
-//
-//            logger.error("error 발생");
-//            throw new RuntimeException(e);
-//        }
-//        String encodedPassword = "";
-//        if (user != null && user.getPassword() != null) {
-//
-//            logger.info("user.getPassword() ? " + user.getPassword());
-//            encodedPassword = encoder.encode(user.getPassword());
-//        } else {
-//
-//            logger.info("user.getPassword() ? " + 1111);
-//            encodedPassword = encoder.encode("1111");
-//        }
-//        UserRole role = UserRole.fromCode(user.getRole());
-//        String roleName = role.name();
-//        logger.info("encodedPassword ? " + encodedPassword);
-//        logger.info("roleName ? " + roleName);
-//
-//        return org.springframework.security.core.userdetails.User
-//                .builder()
-//                .username(user.getUsername())
-//                .password(encodedPassword)
-//                .roles(roleName)
-//                .build();
-//    }
-
-//    /**
-//     * user 정보 가져오기
-//     * @since 2025.05.18
-//     *
-//     * @param userAccountId
-//     * @throws UsernameNotFoundException
-//     * @return UserDetails
-//     * */
-//    @Override
-//    public UserDetails loadUserByUsername(String userAccountId) throws UsernameNotFoundException {
-//
-//        User user = userRepository.findByUserAccountId(userAccountId)
-//                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-//
-//        return new CustomUserDetails(user);
-//    }
-
     /**
-     * user 정보 가져오기
-     * @since 2025.05.18
+     * 회원가입 로직 생성
+     * @param user
+     * @since 2025.05.24
      *
-     * @param userAccountId
-     * @throws UsernameNotFoundException
-     * @return UserDetails
-     * */
-    /*
-    @Override
-    public UserDetails loadUserByUsername(String userAccountId) throws UsernameNotFoundException {
+     * @return JsonResultApiModel
+     */
+    public JsonResultApiModel register (User user) {
 
-        logger.info("UserService, loadUserByUsername");
-        Optional<User> user = Optional.of(new User());
-        try {
-
-            user = userRepository.findByUserAccountId(userAccountId);
-        } catch (Exception e) {
-
-            user = Optional.of(new User());
-            logger.error("error 발생");
-            throw new RuntimeException(e);
-        }
-        String encodedPassword = "";
-        UserRole role = UserRole.fromCode((short)0);
-        String roleName = role.name();
-        encodedPassword = encoder.encode("1111");
-        logger.info("user.getPassword() ? " + 1111);
-        logger.info("109 Line encodedPassword ? " + encodedPassword);
-        logger.info("roleName ? " + roleName);
+        JsonResultApiModel results = new JsonResultApiModel();
+        boolean isSuccess = false;
+        String message = "";
 
         try {
 
-            if (user.isPresent()) {
+            if (userRepository.existsByUserAccountId(user.getUserAccountId())) {
 
-                User userEntity = new User();
-                userEntity = user.get();
-                encodedPassword = userEntity.getPassword();
-                role = UserRole.fromCode(userEntity.getRole());
-                roleName = role.name();
-                logger.info("121 Line user.getPassword() ? " + userEntity.getPassword());
-                logger.info("user.getRole() ? " + userEntity.getRole());
-                logger.info("user. roleName ? " + roleName);
+                message = "중복된 아이디입니다.";
+                isSuccess = false;
             } else {
 
-                logger.error("else문 통해서 생성됨");
-                encodedPassword = encoder.encode("1111");
-                role = UserRole.fromCode((short)0);
-                roleName = role.name();
-                logger.info("before Password ? " + 1111);
-                logger.info("131 Line encodedPassword ? " + encodedPassword);
-                logger.info("roleName ? " + roleName);
+                // 회원가입 정보
+                Timestamp utcNow = UtcHelper.getUtcNow();
+                String encodedPasswd = PasswordEncryptor.encode(user.getPassword());
+
+                user.setRole(UserRole.USER_ROLE.getCode());
+                user.setPassword(encodedPasswd);
+                user.setCreateDt(utcNow);
+                user.setUpdateDt(utcNow);
+                user.setUseYN((short)1);
+
+                userRepository.save(user);
+                isSuccess = true;
             }
         } catch (Exception e) {
 
-            encodedPassword = encoder.encode("1111");
-            role = UserRole.fromCode((short)0);
-            roleName = role.name();
-            logger.info("before Password ? " + 1111);
-            logger.info("encodedPassword ? " + encodedPassword);
-            logger.info("roleName ? " + roleName);
-            logger.error("Exception 발생");
-            e.printStackTrace();
+            logger.error("UserService,Register Exception 발생 {}");
+            isSuccess = false;
+            message = "회원가입 도중 오류가 발생하였습니다.";
         }
 
-        return org.springframework.security.core.userdetails.User
-                .builder()
-                .username(userAccountId)
-                .password(encodedPassword)
-                .roles(roleName)
-                .build();
+        results.message = message;
+        results.isSuccess = isSuccess;
+
+        return results;
     }
-    */
+
+    /**
+     * 로그인 로직
+     * @param userAccountId
+     * @param password
+     * @since 2025.05.24
+     *
+     * @return JsonResultApiModel
+     */
+    public JsonResultApiModel login (String userAccountId, String password) {
+
+        logger.info("UserService, login");
+        JsonResultApiModel result = new JsonResultApiModel();
+        boolean isSuccess = false;
+        String message = "";
+
+        try {
+
+            User user = userRepository.findByUserAccountId(userAccountId)
+                    .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userAccountId));
+
+            // 권한(role)을 문자열로 가져오기 (ex: "USER", "ADMIN")
+            String role =  UserRole.fromCode(user.getRole()).getRoleName(); // ex: "USER" → ROLE_USER로 자동 처리됨
+            boolean match = PasswordEncryptor.matches(password, user.getPassword()); // 테스트용
+
+            logger.info("비밀번호 매치 여부: {}", match);
+
+            logger.info("role ? {}", role);
+            logger.info("user.getUsername() ? {}", user.getUsername());
+            logger.info("user.getPassword() ? {}", user.getPassword());
+
+            if (match) {
+
+                isSuccess = true;
+            } else {
+
+                logger.info("해당하는 유저가 존재하지 않습니다.");
+                message = "해당하는 유저가 존재하지 않습니다.";
+                isSuccess =  false;
+            }
+        } catch (Exception e) {
+
+            logger.error("UserService,login Exception 발생 {}", e.getMessage());
+            message = "로그인 도중 오류가 발생하였습니다.";
+            isSuccess = false;
+        }
+
+        result.isSuccess = isSuccess;
+        result.message = message;
+
+        return result;
+    }
 }

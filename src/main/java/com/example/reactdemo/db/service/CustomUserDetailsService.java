@@ -2,6 +2,7 @@ package com.example.reactdemo.db.service;
 
 import com.example.reactdemo.db.repository.UserRepository;
 import com.example.reactdemo.enums.UserRole;
+import com.example.reactdemo.util.security.PasswordEncryptor;
 import com.example.reactdemo.web.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -17,23 +18,19 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService  implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
 
-//    /**
-//     * SpringSecurity에서 생성한 Bean 사용
-//     * @since 2025.05.17
-//     * */
-//    public CustomUserDetailsService (UserRepository userRepository, PasswordEncoder encoder) {
-//        this.userRepository = userRepository;
-//        this.encoder = encoder;
-//    }
-
     /**
+     * UserAccountId로 UserDetails 정보 가져오기
      *
+     * @since 2025.05.18
+     * @implSpec loadUserByUsername
+     * @return UserDetails
      * */
     @Override
     public UserDetails loadUserByUsername(String userAccountId) throws UsernameNotFoundException {
+
+        logger.info("CustomUserDetailsService, loadUserByUsername");
         // 사용자 조회
         User user = userRepository.findByUserAccountId(userAccountId)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userAccountId));
@@ -41,7 +38,7 @@ public class CustomUserDetailsService  implements UserDetailsService {
         // 권한(role)을 문자열로 가져오기 (ex: "USER", "ADMIN")
         String role =  UserRole.fromCode(user.getRole()).getRoleName(); // ex: "USER" → ROLE_USER로 자동 처리됨
 
-        boolean match = passwordEncoder.matches("1111", user.getPassword()); // 테스트용
+        boolean match = PasswordEncryptor.matches("1111", user.getPassword()); // 테스트용
         logger.info("비밀번호 매치 여부: " + match);
 
         logger.info("role ? " + role);

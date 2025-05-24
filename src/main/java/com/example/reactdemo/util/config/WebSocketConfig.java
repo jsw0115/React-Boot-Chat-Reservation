@@ -1,4 +1,4 @@
-package com.example.reactdemo.config;
+package com.example.reactdemo.util.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
