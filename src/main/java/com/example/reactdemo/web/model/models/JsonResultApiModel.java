@@ -7,7 +7,7 @@ package com.example.reactdemo.web.model.models;
 */
 public class JsonResultApiModel {
 
-    public short resultCode = 0;
+    public int resultCode = 0;
     public boolean isSuccess = false;
     public String responseCode;
     public Object jsonResult;

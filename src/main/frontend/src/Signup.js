@@ -37,6 +37,11 @@ function Signup() {
         }
     };
 
+    // 로그인 하러 이동 
+    const goToLogin = () => {
+        navigate("/login");
+    }
+
     return (
         <form onSubmit={handleSubmit}>
             <input name="userAccountId" placeholder="아이디" value={form.userAccountId} onChange={handleChange} required />
@@ -44,6 +49,7 @@ function Signup() {
             <input name="email" type="email" placeholder="이메일" value={form.email} onChange={handleChange} required />
             <input name="username" placeholder="이름" value={form.name} onChange={handleChange} required />
             <button type="submit">회원가입</button>
+            <button onClick={goToLogin}>로그인 이동</button>
         </form>
     );
 }
