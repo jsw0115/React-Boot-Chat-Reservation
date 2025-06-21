@@ -3,12 +3,13 @@ package com.example.reactdemo.web.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Random;
 
-@RestController("/Test")
+@Controller("/Test")
 public class TestContoller {
 
     private final Logger logger = LoggerFactory. getLogger(this.getClass());
@@ -24,7 +25,7 @@ public class TestContoller {
     }
     */
 
-    @GetMapping
+    @GetMapping("/test2")
     public ResponseEntity<String> test() {
 
         Random random = new Random();
@@ -32,7 +33,7 @@ public class TestContoller {
         return ResponseEntity.ok("" + random.nextInt());
     }
 
-    @GetMapping("/")
+    @GetMapping("/test")
     public String testIndex() {
 
         logger.info("testIndex Page");

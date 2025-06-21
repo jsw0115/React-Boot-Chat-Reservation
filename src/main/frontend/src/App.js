@@ -8,6 +8,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Signup from "./Signup";
 import Login from "./Login";
 import Home from "./Home";
+import ChatList from './pages/chat/ChatList';   // ← 채팅방 목록 페이지
+import ChatRoom from './pages/chat/ChatRoom';
+import ManageRoutine from './pages/manage-routine/ManageRoutine';
+import CreateManageRoutine from './pages/manage-routine/CreateManageRoutine';
 //const cors = require('cors')
 
 //app.use(cors({ credentials: true, origin: "http://localhost:8080" }));
@@ -23,8 +27,12 @@ function App() {
             <Routes>
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login setAuth={setAuth} />} />
+                <Route path="/manage-routine" element={<ManageRoutine />} />
+                <Route path="/create-manage-routine" element={<CreateManageRoutine />} />
                 <Route path="/home" element={auth ? <Home /> : <Login setAuth={setAuth} />} />
                 <Route path="/" element={<Login setAuth={setAuth} />} />
+                /*<Route path="/ChatList" element={<ChatList />} />*/
+                <Route path="/chat/:roomId" element={<ChatRoom />} />
             </Routes>
         </BrowserRouter>
     );

@@ -3,7 +3,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function Login({ setAuth }) {
-    const [form, setForm] = useState({ userAccountId: "", password: "" }, {withCredentials: true,});    // 쿠키 전송 허용 
+    const [form, setForm] = useState(
+        { 
+            userAccountId: "", password: "" 
+        }, {
+            withCredentials: true,  // 쿠키 전송 허용 
+        }
+    );    
     const navigate = useNavigate();
 
     const handleChange = (e) => {

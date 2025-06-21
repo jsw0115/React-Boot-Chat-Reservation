@@ -1,17 +1,18 @@
 package com.example.reactdemo.web.model.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 public class ChatRoom {
 
     @Id
@@ -22,4 +23,11 @@ public class ChatRoom {
     private LocalDateTime updateDt;
     private Short bOpen;    // 공개 채팅방 유무
     private Short delYN;
+
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<ChatMessage> messages = new ArrayList<>();
+
+    public ChatRoom(String name) {
+        this.name = name;
+    }
 }

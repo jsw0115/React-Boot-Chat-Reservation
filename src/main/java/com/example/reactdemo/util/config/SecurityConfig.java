@@ -64,9 +64,13 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/index.html", "/login", "/signup", "/login/**", "/signup/**",
                                 "/static/**", "/css/**", "/js/**", "/h2-console/**", "/**",  "/api/account/**"
+                                , "/ws/**"
                         ).permitAll()
                         .requestMatchers("/auth/**").authenticated() // 이 부분도 문자열로!
+//                        .requestMatchers("/ws/**").authenticated() // WebSocket 연결은 인증 필요
+//                                .requestMatchers("/ws/**").authenticated() // ✅ WebSocket도 인증 필요
                         .anyRequest().authenticated() // 나머지는 인증 필요
+
                 )
                 // API 전용 로그인 → 리다이렉트 방지
                 .exceptionHandling(ex -> ex

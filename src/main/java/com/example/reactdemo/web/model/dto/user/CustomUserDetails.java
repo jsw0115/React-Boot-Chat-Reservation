@@ -1,4 +1,4 @@
-package com.example.reactdemo.web.model.dto;
+package com.example.reactdemo.web.model.dto.user;
 
 import com.example.reactdemo.enums.UserRole;
 import com.example.reactdemo.web.model.entity.User;
@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  *  UserDetails 상속받아 사용
