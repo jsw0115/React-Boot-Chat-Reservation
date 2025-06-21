@@ -22,7 +22,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
+	//QueryDSL 추가
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 	// JPA
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	// Thymeleaf
@@ -46,6 +50,8 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 
 	implementation 'org.springframework.security:spring-security-crypto:5.7.1'
+
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 }
 
 tasks.named('test') {
