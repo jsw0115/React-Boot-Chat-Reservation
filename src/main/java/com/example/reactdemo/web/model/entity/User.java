@@ -19,7 +19,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "user")
+@Table(name = "tbl_user")
 public class User {
 
     @Id
@@ -31,9 +31,9 @@ public class User {
     private String username;
     @Column(nullable = false)
     private String password;
-    @Column(nullable = false)
+    @Column(name="create_dt", nullable = false)
     private Timestamp createDt;
-    @Column(nullable = false)
+    @Column(name="update_dt", nullable = false)
     private Timestamp updateDt;
     @Column(nullable = false)
     private String email;
