@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- 기존의 다른 CSS 코드들... --- */
 .App {
   text-align: center;
 }

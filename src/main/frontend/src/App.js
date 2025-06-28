@@ -12,6 +12,7 @@ import ChatList from './pages/chat/ChatList';   // ← 채팅방 목록 페이�
 import ChatRoom from './pages/chat/ChatRoom';
 import ManageRoutine from './pages/manage-routine/ManageRoutine';
 import CreateManageRoutine from './pages/manage-routine/CreateManageRoutine';
+import MyCalendar from './pages/scheduler/MyCalendar';
 //const cors = require('cors')
 
 //app.use(cors({ credentials: true, origin: "http://localhost:8080" }));
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/create-manage-routine" element={<CreateManageRoutine />} />
                 <Route path="/home" element={auth ? <Home /> : <Login setAuth={setAuth} />} />
                 <Route path="/" element={<Login setAuth={setAuth} />} />
+                <Route path="/scheduler" element={<MyCalendar />} />
                 /*<Route path="/ChatList" element={<ChatList />} />*/
                 <Route path="/chat/:roomId" element={<ChatRoom />} />
             </Routes>

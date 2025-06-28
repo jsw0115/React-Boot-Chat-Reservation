@@ -80,8 +80,21 @@ function Home() {
     }
   };
 
+    // 채팅방 상세 페이지
   const enterChatRoom = (roomId) => {
     navigate(`/chat/${roomId}`); // 채팅방 상세 페이지로 이동
+  };
+
+  // 일정 페이지 이동
+  const MyCalendar = async (e) => {
+    e.preventDefault();
+    try {
+
+        // 성공 시 페이지 이동
+        navigate("/scheduler"); // 미리 라우터에 등록된 경로로 이동
+    } catch (err) {
+        alert("루틴 관리 불러오기 실패: " + (err.response?.data || err.message));
+    }
   };
   
   return (
@@ -92,6 +105,7 @@ function Home() {
       <button onClick={ManageRoutine}>루틴관리</button>
       <button onClick={Logout}>로그아웃</button>
       <button onClick={ChatList}>채팅방</button>
+      <button onClick={MyCalendar}>일정</button>
 
       {/* 채팅방 생성 폼 */}
       <form onSubmit={createRoom} style={{ marginTop: "1rem" }}>

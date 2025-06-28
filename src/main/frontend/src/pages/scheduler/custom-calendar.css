@@ -1,0 +1,21 @@
+/* FullCalendar 헤더 배경색 변경 */
+.fc .fc-button-primary {
+    background-color: #6a1b9a; /* 보라색 계열 */
+    border-color: #6a1b9a;
+}
+
+/* 오늘 날짜 배경색 변경 */
+.fc-daygrid-day.fc-day-today {
+    background-color: #e0f2f1; /* 연한 민트색 */
+}
+
+/* 이벤트 배경색 변경 */
+.fc-event {
+    background-color: #00796b; /* 진한 민트색 */
+    border-color: #00796b;
+}
+
+/* 캘린더 전체 폰트 변경 */
+.fc {
+    font-family: 'Noto Sans KR', sans-serif;
+}
