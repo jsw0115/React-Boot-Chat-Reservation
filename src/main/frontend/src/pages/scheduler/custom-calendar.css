@@ -1,21 +1,347 @@
-/* FullCalendar 헤더 배경색 변경 */
-.fc .fc-button-primary {
-    background-color: #6a1b9a; /* 보라색 계열 */
-    border-color: #6a1b9a;
+/* src/custom-calendar.css */
+
+/* Google Fonts - Noto Sans KR 임포트 (만약 HTML head에 없다면) */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+
+/* 전체 캘린더 컨테이너 */
+.calendar-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 25px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+  font-family: 'Noto Sans KR', sans-serif;
 }
 
-/* 오늘 날짜 배경색 변경 */
-.fc-daygrid-day.fc-day-today {
-    background-color: #e0f2f1; /* 연한 민트색 */
+/* 캘린더 헤더 스타일링 */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-/* 이벤트 배경색 변경 */
-.fc-event {
-    background-color: #00796b; /* 진한 민트색 */
-    border-color: #00796b;
+.calendar-header h1 {
+  font-size: 2.5em;
+  color: #2c3e50;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
-/* 캘린더 전체 폰트 변경 */
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.filter-section label {
+  font-size: 1.1em;
+  color: #555;
+  font-weight: 500;
+}
+
+/* FullCalendar 기본 변수 오버라이드 (새로운 컬러 팔레트 적용) */
 .fc {
-    font-family: 'Noto Sans KR', sans-serif;
+  --fc-border-color: #e0e0e0;
+  --fc-button-text-color: #ffffff;
+  --fc-button-bg-color: #6200ea; /* 보라색 계열 (Deep Purple) */
+  --fc-button-hover-bg-color: #673ab7;
+  --fc-button-active-bg-color: #512da8;
+  --fc-today-bg-color: #ede7f6; /* 오늘 날짜 배경 (연한 보라색) */
+  --fc-event-text-color: #ffffff;
+  --fc-daygrid-event-dot-width: 8px; /* 이벤트 점 크기 */
+  --fc-highlight-color: #d1c4e9; /* 선택 및 드래그 하이라이트 (더 연한 보라색) */
+}
+
+/* 헤더 툴바 버튼 그룹 */
+.fc-toolbar-chunk {
+  display: flex;
+  align-items: center;
+}
+
+/* 캘린더 제목 (ex: 2025년 6월) */
+.fc-toolbar-title {
+  font-size: 2em;
+  font-weight: 600;
+  color: #34495e;
+}
+
+/* 오늘, 월, 주, 일, 목록 버튼 스타일 */
+.fc-button-group .fc-button-primary {
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 0.95em;
+  font-weight: 600;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  margin-right: 5px;
+}
+
+.fc-button-group .fc-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 날짜 셀 */
+.fc-daygrid-day {
+  border: 1px solid var(--fc-border-color);
+  background-color: #fdfdfd;
+}
+
+/* 오늘 날짜 셀 */
+.fc-daygrid-day.fc-day-today {
+  background-color: var(--fc-today-bg-color);
+  font-weight: bold;
+  border: 1px solid #b39ddb;
+}
+
+/* 주말 날짜 색상 */
+.fc-day-sun .fc-daygrid-day-number {
+  color: #d32f2f; /* 빨간색 */
+}
+.fc-day-sat .fc-daygrid-day-number {
+  color: #1976d2; /* 파란색 */
+}
+
+/* 날짜 숫자 스타일 */
+.fc-daygrid-day-number {
+  font-size: 1.2em;
+  padding: 10px;
+  color: #333;
+  opacity: 0.85;
+}
+
+/* 이전/다음 달 날짜 투명하게 */
+.fc-day-other .fc-daygrid-day-number {
+  opacity: 0.4;
+}
+
+
+/* ========================================================== */
+/* !!! 핵심 UI 수정: 이틀 이상 일정(multi-day event)이 제대로 표시되도록 조정 !!! */
+/* ========================================================== */
+
+/* fc-daygrid-day-events 컨테이너:
+   이 컨테이너에 overflow: hidden을 적용하면,
+   FullCalendar가 다른 날짜로 확장하여 그려야 할 이벤트를 잘라버립니다.
+   따라서 여기서는 overflow: hidden을 제거합니다.
+   대신, 이벤트 내용 자체가 셀 내에서 잘 표현되도록 아래에서 관리합니다.
+*/
+.fc-daygrid-day-events {
+    position: relative; /* 자식 요소의 absolute positioning을 제대로 제한 */
+    /* overflow: hidden;  <-- 이 속성을 제거하여 multi-day event가 옆 셀로 확장되도록 허용 */
+    /* z-index: 1; */
+}
+
+/* fc-daygrid-event-harness:
+   FullCalendar가 이벤트의 위치와 너비를 인라인 스타일로 계산하여 설정하는 컨테이너입니다.
+   `max-width: 100%`는 단일 셀 내에서만 이벤트를 렌더링하려고 할 때 유용했지만,
+   multi-day event가 여러 셀에 걸쳐 확장되는 것을 막습니다.
+   따라서 이 속성을 제거하여 FullCalendar의 기본 계산을 따르도록 합니다.
+*/
+.fc-daygrid-event-harness {
+    /* max-width: 100%;  <-- 이 속성을 제거하여 multi-day event가 여러 날짜에 걸쳐 확장되도록 허용 */
+    box-sizing: border-box; /* 패딩/보더 포함 계산은 유지 */
+    /* FullCalendar가 계산하는 top, left, right는 건드리지 않습니다. */
+}
+
+/* 이벤트 내용 렌더링 시 적용되는 div (renderEventContent에서 생성) */
+/* 이 부분은 여전히 텍스트가 넘치지 않도록 관리하는 데 중요합니다. */
+.fc-event-main-content {
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    box-sizing: border-box;
+
+    /* 텍스트 줄바꿈 및 오버플로우 처리는 여전히 중요합니다. */
+    white-space: normal;      /* 텍스트 줄바꿈 허용 */
+    overflow-wrap: break-word; /* 긴 단어도 강제로 줄바꿈 */
+    word-break: break-all;     /* 더 공격적으로 단어 사이를 끊어 줄바꿈 */
+
+    /* 이 박스 자체의 콘텐츠가 넘치면 말줄임표 처리 (텍스트용) */
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+.fc-event-main-content:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Multi-day events (가로로 길게 표시되는 이벤트)에 대한 추가 처리 */
+/* 이 .fc-h-event 요소는 FullCalendar가 여러 날짜에 걸친 이벤트를 렌더링할 때 사용하는 래퍼입니다.
+   이 요소 자체에는 `overflow: hidden`을 적용하지 않아 여러 날짜에 걸쳐 보이도록 허용합니다.
+   다만, 그 안에 있는 텍스트는 `fc-event-main-content`에서 관리됩니다. */
+.fc-h-event { /* horizontal event */
+    /* overflow: hidden; <-- 이 속성을 제거하여 이벤트가 여러 날짜에 걸쳐 보이도록 허용 */
+    box-sizing: border-box;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 그림자 유지 */
+    /* FullCalendar가 이 요소의 너비를 정확히 계산하므로, 다른 너비 관련 속성은 추가하지 않습니다. */
+}
+
+/* .fc-event는 그대로 두되, 인라인 스타일로 덮어쓰지 않는 한,
+   FullCalendar의 기본 `background-color`와 `border-color`를 따르게 됩니다.
+   우리는 MyCalendar.js에서 `backgroundColor`와 `borderColor`를 명시적으로 설정하므로
+   이 부분은 큰 영향을 주지 않습니다.
+*/
+.fc-event {
+    box-sizing: border-box;
+    /* FullCalendar가 이벤트 아이템 자체에 적용하는 기본 패딩/마진 등은 유지 */
+}
+
+/* ========================================================== */
+
+
+/* Ant Design 오버라이드 */
+.ant-modal-header {
+  border-bottom: 1px solid #e8e8e8;
+  padding: 18px 24px;
+  background-color: #f0f2f5;
+}
+.ant-modal-title {
+  font-size: 1.6em;
+  font-weight: 600;
+  color: #333;
+}
+.ant-form-item-label > label {
+  font-weight: 500;
+  color: #444;
+  font-size: 1.05em;
+}
+.ant-btn-primary {
+    background-color: #6200ea !important; /* Ant Design 버튼 기본 색상과 통일 */
+    border-color: #6200ea !important;
+}
+.ant-btn-primary:hover {
+    background-color: #673ab7 !important;
+    border-color: #673ab7 !important;
+}
+.ant-select-selector { /* Ant Design Select 박스 */
+    border-radius: 8px !important; /* 둥근 모서리 */
+}
+.ant-input, .ant-picker { /* Ant Design Input, DatePicker */
+    border-radius: 8px !important; /* 둥근 모서리 */
+}
+
+/* 목록 뷰 스타일 */
+.fc-list-event {
+  background-color: #ffffff;
+  border-left: 6px solid var(--fc-event-border-color);
+  margin-bottom: 10px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.fc-list-event-title {
+  font-weight: 600;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.fc-list-event-time {
+  font-size: 0.95em;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+/* Ant Design Select 드롭다운 내 Tag 스타일 */
+.ant-select-item-option-content .ant-tag {
+  margin-right: 0;
+}
+
+/* Ant Design Tag 내부 아이콘 정렬 */
+.ant-tag .anticon {
+  vertical-align: middle;
+}
+
+/* FullCalendar 이벤트 드래그 중 스타일 */
+.fc-event.fc-event-mirror {
+  opacity: 0.6;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+/* FullCalendar 선택된 날짜 하이라이트 */
+.fc-daygrid-day-frame.fc-day-other {
+  background-color: #f8f8f8;
+}
+
+.fc-daygrid-day-frame.fc-day-selected {
+  background-color: #e0f2f7;
+  border: 1px dashed #009688;
+}
+
+/* 주 번호 커스텀 스타일 */
+.custom-week-number {
+  padding: 8px;
+  background-color: #fafafa;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.9em;
+  color: #555;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.custom-week-number:hover {
+    background-color: #f0f0f0;
+}
+
+.custom-week-number span {
+  font-weight: 600;
+  color: #333;
+}
+
+.week-goals-list {
+  width: 100%;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #e5e5e5;
+}
+
+.week-goal-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.85em;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.week-goal-item .ant-checkbox-wrapper {
+  margin-right: 8px;
+}
+
+/* Ant Design Form Validation Error Message */
+.ant-form-item-explain {
+    font-size: 0.85em;
+}
+
+/* FullCalendar DayGrid Week Top (요일 표시) 스타일 */
+.fc-daygrid-week-number {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 0;
+    font-weight: 500;
+    color: #666;
+    font-size: 0.9em;
 }

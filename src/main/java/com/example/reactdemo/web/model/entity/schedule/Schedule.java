@@ -2,8 +2,7 @@ package com.example.reactdemo.web.model.entity.schedule;
 
 import com.example.reactdemo.web.model.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.sql.Timestamp;
 
@@ -15,12 +14,15 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @Table(name = "tbl_schedule")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Schedule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "schedule_id")
-    private int scheduleId;
+    private long scheduleId;
     private String title;
     private String description;
     @Column(name = "start_dt", nullable = false)

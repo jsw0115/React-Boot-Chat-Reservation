@@ -1,24 +1,30 @@
 package com.example.reactdemo.web.apicontroller;
 
 import com.example.reactdemo.db.service.UserService;
+import com.example.reactdemo.util.security.JwtProvider;
+import com.example.reactdemo.web.model.dto.user.LoginRequestDto;
 import com.example.reactdemo.web.model.entity.User;
 import com.example.reactdemo.web.model.models.JsonResultApiModel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.security.sasl.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +42,7 @@ public class AccountApiController {
     private final Logger logger = LoggerFactory. getLogger(this.getClass());
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
 
     /**
      * 회원가입 Api Controller
@@ -122,5 +129,69 @@ public class AccountApiController {
         result.put("isSuccess", true);
 
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * jwt 토큰으로 로그인하는 방식
+     * @since 2025.06.28
+     * @param
+     * @apiNote
+     */
+    @PostMapping("/jwtLogin")
+    public ResponseEntity<?> jwtLogin(@Valid @RequestBody LoginRequestDto loginRequest, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body("Invalid input");
+        }
+
+        try {
+            // AuthenticationManager로 인증 시도
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUserAccountId(), loginRequest.getPassword())
+            );
+
+            // authentication.getPrincipal()은 UserDetails 타입임을 명시적 캐스팅
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            // 인증 성공 시 토큰 생성
+            String token = jwtProvider.generateToken(userDetails);
+
+
+            return ResponseEntity.ok().body(new JwtResponse(token));
+
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(401).body(new ErrorResponse("Invalid credentials"));
+        } catch (AuthenticationException ex) {
+            return ResponseEntity.status(401).body(new ErrorResponse("Authentication failed"));
+        }
+    }
+
+    // JWT 토큰 반환용 DTO
+    public static class JwtResponse {
+        private String token;
+
+        public JwtResponse(String token) {
+            this.token = token;
+        }
+        public String getToken() {
+            return token;
+        }
+        public void setToken(String token) {
+            this.token = token;
+        }
+    }
+
+    // 에러 메시지 DTO
+    public static class ErrorResponse {
+        private String message;
+
+        public ErrorResponse(String message) {
+            this.message = message;
+        }
+        public String getMessage() {
+            return message;
+        }
+        public void setMessage(String message) {
+            this.message = message;
+        }
     }
 }

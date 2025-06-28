@@ -1,6 +1,7 @@
 package com.example.reactdemo.db.service;
 
 import com.example.reactdemo.db.repository.UserRepository;
+import com.example.reactdemo.enums.ProviderEnum;
 import com.example.reactdemo.enums.UserRole;
 import com.example.reactdemo.util.helper.UtcHelper;
 import com.example.reactdemo.util.security.PasswordEncryptor;
@@ -21,10 +22,10 @@ import java.sql.Timestamp;
  * */
 @Service
 @RequiredArgsConstructor
-public class UserService{
+public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder encoder;
+//    private final PasswordEncoder encoder;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
@@ -124,5 +125,17 @@ public class UserService{
         result.message = message;
 
         return result;
+    }
+
+    public User loadOrRegisterOAuthUser(String email) {
+        return userRepository.findByEmail(email)
+            .orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setUsername(email.split("@")[0]); // 임시 이름
+                newUser.setProvider(ProviderEnum.KAKAO.getCode()); // 또는 "google", "kakao"
+                newUser.setRole(UserRole.USER_ROLE.getCode());
+                return userRepository.save(newUser);
+            });
     }
 }

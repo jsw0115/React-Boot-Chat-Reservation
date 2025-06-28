@@ -31,8 +31,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	// Thymeleaf
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	// web
-	implementation 'org.springframework.boot:spring-boot-starter-web'
 	// lombok
 	// DTO 어노테이션을 줄이기 위한 롬복 라이브러리
 	compileOnly 'org.projectlombok:lombok'
@@ -51,8 +49,15 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 
 	implementation 'org.springframework.security:spring-security-crypto:5.7.1'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+	// jwt 패키지
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
 }
 
 tasks.named('test') {

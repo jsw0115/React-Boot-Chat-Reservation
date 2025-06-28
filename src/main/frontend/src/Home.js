@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom"; // 페이지 이동을 위한 hook
 import ChatList from "./pages/chat/ChatList";
+const token = localStorage.getItem("token"); // 이걸 추가해야 함
 
 function Home() {
   

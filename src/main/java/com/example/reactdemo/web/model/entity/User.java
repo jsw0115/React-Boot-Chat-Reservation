@@ -37,6 +37,7 @@ public class User {
     private Timestamp updateDt;
     @Column(nullable = false)
     private String email;
+    private Short provider = 0;
     private Short useYN;
-    private short role;
+    private Short role;
 }
