@@ -1,0 +1,29 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* 뷰포트 높이 전체를 차지 */
+  background-color: #f0f2f5; /* 배경색 */
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px; /* 카드 최대 너비 설정 */
+  border-radius: 8px; /* 모서리 둥글게 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+}
+
+.login-form .ant-input-prefix {
+  color: rgba(0, 0, 0, 0.25); /* 아이콘 색상 조절 */
+}
+
+.login-form-button {
+  width: 100%; /* 버튼 너비를 100%로 */
+  margin-top: 16px; /* 버튼 위 여백 */
+}
+
+.signup-button {
+  width: 100%;
+  margin-top: 10px; /* 회원가입 버튼 위 여백 */
+}

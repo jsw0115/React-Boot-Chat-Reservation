@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class ScheduleService {
      * @param param
      * @return JsonResultApiModel
      */
+    @Transactional
     public JsonResultApiModel getScheduleList(ScheduleParamModelDto param) {
 
         JsonResultApiModel result = new JsonResultApiModel();
@@ -88,6 +90,7 @@ public class ScheduleService {
      * @param param
      * @return JsonResultApiModel
      */
+    @Transactional
     public JsonResultApiModel createSchedule(ScheduleModelDto param) {
 
         logger.info("ScheduleService, createSchedule");
@@ -119,4 +122,97 @@ public class ScheduleService {
 
         return result;
     }
+
+    /**
+     * 일정 수정
+     * @since 2025.06.29
+     * @param param
+     * @return JsonResultApiModel result
+     */
+    @Transactional
+    public JsonResultApiModel updateSchedule(ScheduleModelDto param) {
+
+        JsonResultApiModel result = new JsonResultApiModel();
+        logger.info("ScheduleService, updateSchedule");
+        try {
+
+            long scheduleId = param.getId();
+            String userAccountId = param.getUserAccountId();
+            Schedule schedule = scheduleRepository.findByScheduleId(scheduleId).orElseThrow();
+            User user = userRepository.findByUserAccountId(userAccountId).orElseThrow();
+
+            if (schedule.getUser().getId() == user.getId()) {
+
+                // 일정 수정
+                schedule.setUpdateDt(UtcHelper.getUtcNow());
+                schedule.setDescription(param.getTitle());
+                schedule.setStartDt(Timestamp.valueOf(param.getStartTime()));
+                schedule.setEndDt(Timestamp.valueOf(param.getEndTime()));
+                schedule.setTitle(param.getTitle());
+
+                // JPA가 자동으로 dirty checking → update 수행
+
+                result.isSuccess = true;
+                result.resultCode = 1;
+                result.message = "일정을 성공적으로 수정하였습니다.";
+                result.jsonResult = true;
+            } else {
+
+                result.isSuccess = false;
+                result.resultCode = 0;
+                result.message = "일정을 수정할 수 없습니다.";
+                result.jsonResult = false;
+            }
+        } catch (Exception e) {
+
+            logger.error("ScheduleService, updateSchedule 도중 Exception 발생 {}", e);
+            result.isSuccess = false;
+            result.resultCode = 0;
+            result.message = "ScheduleService, updateSchedule 실패";
+            result.jsonResult = "ScheduleService, updateSchedule 실패";
+        }
+
+        return result;
+    }
+
+    /**
+     * 일정 삭제
+     * @since 2025.06.29
+     * @param param
+     * @return JsonResultApiModel result
+     */
+    @Transactional
+    public JsonResultApiModel deleteSchedule(ScheduleModelDto param) {
+
+        JsonResultApiModel result = new JsonResultApiModel();
+        logger.info("ScheduleService, deleteSchedule");
+        try {
+
+            Schedule schedule = scheduleRepository.findByScheduleId(param.getId()).orElseThrow();
+            User user = userRepository.findByUserAccountId(param.getUserAccountId()).orElseThrow();
+            if (schedule.getUser().getId() == user.getId()) {
+
+                scheduleRepository.delete(schedule);
+                result.isSuccess = true;
+                result.resultCode = 1;
+                result.jsonResult = true;
+            } else {
+
+                result.isSuccess = false;
+                result.resultCode = 0;
+                result.message = "일정을 삭제할 수 없습니다.";
+                result.jsonResult = false;
+            }
+        } catch (Exception e) {
+
+            logger.error("ScheduleService, deleteSchedule 도중 Exception 발생 {}", e);
+            result.isSuccess = false;
+            result.resultCode = 0;
+            result.message = "ScheduleService, deleteSchedule 실패";
+            result.jsonResult = "ScheduleService, deleteSchedule 실패";
+        }
+
+        return result;
+    }
+
 }

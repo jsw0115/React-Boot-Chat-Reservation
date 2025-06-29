@@ -1,0 +1,39 @@
+/* src/styles/GoalList.css */
+.goal-list-container {
+  width: 90%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.goal-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.goal-list-card .ant-list-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 0;
+}
+
+.goal-list-card .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.goal-list-card .ant-list-item-meta-title {
+  margin-bottom: 5px;
+}
+
+.goal-list-card .ant-list-item-meta-description {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.goal-list-card .ant-progress-inner {
+  margin-top: 10px;
+}

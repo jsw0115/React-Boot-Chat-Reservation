@@ -1,0 +1,43 @@
+/* src/components/ChatWidget.module.css */
+.form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.input {
+    flex-grow: 1;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #28a745;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.fullButton {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+.roomList {
+    list-style: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.roomList li {
+    padding: 0.8rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+.roomList li:hover {
+    background-color: #f0f0f0;
+}

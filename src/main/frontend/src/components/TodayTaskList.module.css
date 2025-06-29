@@ -1,0 +1,61 @@
+/* src/components/TodayTaskList.module.css */
+.taskList {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.taskItem {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.taskItem:last-child {
+    border-bottom: none;
+}
+
+.taskItem.completed .taskTitle {
+    text-decoration: line-through;
+    color: #aaa;
+}
+
+.checkbox {
+    margin-right: 1rem;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.taskInfo {
+    flex-grow: 1;
+}
+
+.taskTime {
+    font-size: 0.9rem;
+    color: #888;
+    margin-right: 1rem;
+    font-weight: 500;
+}
+
+.taskTitle {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.taskType {
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+.routine {
+    background-color: #17a2b8; /* 청록색 */
+}
+
+.schedule {
+    background-color: #fd7e14; /* 주황색 */
+}

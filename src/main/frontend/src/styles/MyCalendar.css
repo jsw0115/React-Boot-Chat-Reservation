@@ -1,0 +1,82 @@
+/* src/styles/MyCalendar.css */
+.my-calendar-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-header h2 {
+    margin: 0;
+    color: #333;
+}
+
+.calendar-main {
+    position: relative;
+    z-index: 1;
+}
+
+.fc .fc-toolbar-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+}
+
+.fc .fc-button {
+    background-color: #1890ff;
+    border-color: #1890ff;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.fc .fc-button:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+}
+
+.ant-popover {
+    z-index: 1000;
+}
+
+.fc-event-main-frame {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.fc-event-time {
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-right: 5px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.fc-event-title-container {
+    flex-grow: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fc-event-title {
+    font-size: 0.85em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.fc .fc-daygrid-more-link {
+    font-size: 0.8em;
+    color: #1890ff;
+}

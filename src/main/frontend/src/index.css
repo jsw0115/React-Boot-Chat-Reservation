@@ -16,3 +16,10 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.ant-layout-header {
+  /* 헤더에 그림자 추가 등 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.ant-layout-content {
+  padding: 20px;
+}

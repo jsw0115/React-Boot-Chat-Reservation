@@ -1,140 +1,113 @@
-// src/Home.js 또는 src/components/Home.js
+// src/Home.js
 
-//import React from "react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from "react-router-dom"; // 페이지 이동을 위한 hook
-import ChatList from "./pages/chat/ChatList";
-const token = localStorage.getItem("token"); // 이걸 추가해야 함
+import { useNavigate } from 'react-router-dom';
+
+// 모듈화된 컴포넌트 임포트
+import DashboardHeader from './components/DashboardHeader';
+import ProgressSummary from './components/ProgressSummary';
+import TodayTaskList from './components/TodayTaskList';
+import ChatWidget from './components/ChatWidget';
+
+// CSS 모듈 임포트
+import styles from './components/Home.module.css';
 
 function Home() {
-  
-  const navigate = useNavigate(); // 컴포넌트 내부에서 호출
-  const [chatRooms, setChatRooms] = useState([]);
-  const [showChatList, setShowChatList] = useState(false);
-  const [newRoomName, setNewRoomName] = useState("");
+    const navigate = useNavigate();
+    const [tasks, setTasks] = useState([]); // 오늘의 루틴/일정을 합친 배열
+    const [userName, setUserName] = useState("사용자"); // 사용자 이름 (API에서 받아올 수 있음)
+    const [isLoading, setIsLoading] = useState(true);
 
-    // ManageRoutine : 루틴 관리
-    const ManageRoutine = async (e) => {
-
-        e.preventDefault();
+    // 백엔드 API로부터 오늘 할 일 데이터를 가져오는 함수
+    const fetchDashboardData = async () => {
+        setIsLoading(true);
         try {
+            // 여러 API를 동시에 호출하여 대시보드 데이터를 구성
+            const [todaySchedulesResponse, todayRoutinesResponse] = await Promise.all([
+                axios.get("/api/schedules/today"), // 오늘의 일정 API (백엔드에 구현 필요)
+                axios.get("/api/routines/today"),  // 오늘의 루틴 API (백엔드에 구현 필요)
+            ]);
 
-          // 1. 백엔드에서 루틴 데이터를 요청 (선택사항: 이 데이터로 상태 설정 가능)
-          //const response = await axios.get("http://localhost:8080/api/manageRoutine/index");
-
-          // 2. 성공 시 페이지 이동
-          navigate("/manage-routine"); // 미리 라우터에 등록된 경로로 이동
-        } catch (err) {
-            alert("루틴 관리 불러오기 실패: " + (err.response?.data || err.message));
+            // 받아온 데이터를 하나의 task 배열로 통합
+            const combinedTasks = [
+                ...todaySchedulesResponse.data.map(item => ({ ...item, type: 'schedule' })),
+                ...todayRoutinesResponse.data.map(item => ({ ...item, type: 'routine' })),
+            ];
+            
+            // 시간순으로 정렬
+            combinedTasks.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+            
+            setTasks(combinedTasks);
+        } catch (error) {
+            console.error("대시보드 데이터 로딩 실패:", error);
+            // alert("데이터를 불러오는 데 실패했습니다.");
+        } finally {
+            setIsLoading(false);
         }
-    }
-
-  // 
-  const Logout = async (e) => {
+    };
     
-    e.preventDefault();
-    try {
+    useEffect(() => {
+        // 컴포넌트 마운트 시 데이터 로드
+        // const token = localStorage.getItem("token"); // 토큰 확인
+        // if (!token) navigate('/login');
+        fetchDashboardData();
+    }, []);
 
-      // 로그아웃 로직에서 http://localhost:8080 이부분 적지 않아도 되도록 만들기
-      const response = await axios.post("http://localhost:8080/api/account/logout");
-      if (response.data.isSuccess === true) {
+    const handleLogout = async () => {
+        try {
+            await axios.post("/api/account/logout");
+            localStorage.removeItem("token");
+            navigate("/login");
+        } catch (err) {
+            alert("로그아웃 실패: " + (err.response?.data?.message || err.message));
+        }
+    };
 
-        localStorage.removeItem("token"); // 예시
-        // 로그인 페이지로 이동
-        navigate("/login");
-      } else {
+    // 자식 컴포넌트(TodayTaskList)에서 태스크 완료 상태 변경 시 호출될 함수
+    const handleToggleComplete = async (taskId, currentStatus) => {
+        try {
+            // 낙관적 업데이트: 서버 응답을 기다리지 않고 UI를 먼저 변경
+            setTasks(tasks.map(task => 
+                task.id === taskId ? { ...task, isCompleted: !currentStatus } : task
+            ));
+            
+            // 서버에 변경사항 전송
+            await axios.patch(`/api/tasks/${taskId}/toggle`); // 통합된 완료 처리 API (백엔드에 구현 필요)
+        } catch (error) {
+            console.error("태스크 상태 변경 실패:", error);
+            // 업데이트 실패 시 UI 롤백
+            setTasks(tasks.map(task => 
+                task.id === taskId ? { ...task, isCompleted: currentStatus } : task
+            ));
+            alert("상태 변경에 실패했습니다.");
+        }
+    };
+    
+    return (
+        <div className={styles.dashboardContainer}>
+            <DashboardHeader 
+                userName={userName}
+                onLogout={handleLogout}
+                onNavigate={navigate}
+            />
 
-        alert(response.data.message);
-      }
-    } catch (err) {
-      alert("로그아웃 실패: " + err.response.data);
-    }
+            <div className={styles.widgetsGrid}>
+                {/* 위젯 1: 진행률 요약 */}
+                <ProgressSummary tasks={tasks} />
 
-  }
-
-  // ChatList
-  const ChatList = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.get("http://localhost:8080/api/chat/rooms");
-      setChatRooms(response.data); // 받아온 채팅방 목록 저장
-      setShowChatList(true); // 목록 표시
-    } catch (err) {
-      alert("채팅방 목록 불러오기 실패: " + (err.response?.data || err.message));
-    }
-  }
-
-  // 채팅방 생성
-  const createRoom = async (e) => {
-    e.preventDefault();
-    if (!newRoomName.trim()) {
-      alert("채팅방 이름을 입력하세요.");
-      return;
-    }
-    try {
-      await axios.post("http://localhost:8080/api/chat/createRoom", { name: newRoomName });
-      setNewRoomName("");
-      await ChatList(e); // 생성 후 목록 새로고침
-    } catch (err) {
-      alert("채팅방 생성 실패: " + (err.response?.data || err.message));
-    }
-  };
-
-    // 채팅방 상세 페이지
-  const enterChatRoom = (roomId) => {
-    navigate(`/chat/${roomId}`); // 채팅방 상세 페이지로 이동
-  };
-
-  // 일정 페이지 이동
-  const MyCalendar = async (e) => {
-    e.preventDefault();
-    try {
-
-        // 성공 시 페이지 이동
-        navigate("/scheduler"); // 미리 라우터에 등록된 경로로 이동
-    } catch (err) {
-        alert("루틴 관리 불러오기 실패: " + (err.response?.data || err.message));
-    }
-  };
-  
-  return (
-    <div style={{ padding: "2rem" }}>
-      <h1>홈페이지</h1>
-      <p>로그인에 성공하셨습니다! 🎉</p>
-      <p>여기에 원하는 내용을 자유롭게 추가하세요.</p>
-      <button onClick={ManageRoutine}>루틴관리</button>
-      <button onClick={Logout}>로그아웃</button>
-      <button onClick={ChatList}>채팅방</button>
-      <button onClick={MyCalendar}>일정</button>
-
-      {/* 채팅방 생성 폼 */}
-      <form onSubmit={createRoom} style={{ marginTop: "1rem" }}>
-        <input
-          type="text"
-          placeholder="새 채팅방 이름"
-          value={newRoomName}
-          onChange={e => setNewRoomName(e.target.value)}
-        />
-        <button type="submit">채팅방 생성</button>
-      </form>
-
-
-      {showChatList && (
-        <div>
-          <h2>채팅방 목록</h2>
-          <ul>
-            {chatRooms.map(room => (
-              <li key={room.id}>
-                {room.name}
-                <button onClick={() => enterChatRoom(room.id)}>입장</button>
-              </li>
-            ))}
-          </ul>
+                {/* 위젯 2: 오늘 할 일 목록 */}
+                <TodayTaskList 
+                    tasks={tasks}
+                    isLoading={isLoading}
+                    onToggleComplete={handleToggleComplete}
+                />
+                
+                {/* 위젯 3: 채팅 */}
+                <ChatWidget />
+            </div>
         </div>
-      )}
-    </div>
-  );
+    );
 }
 
 export default Home;

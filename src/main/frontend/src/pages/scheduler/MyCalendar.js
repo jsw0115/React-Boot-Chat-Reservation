@@ -294,7 +294,7 @@ function MyCalendar() {
     const { tagColor: importanceTagColor } = importanceMap[importance] || { tagColor: 'default' };
 
     return (
-      <div>
+      <div onClick={(e) => e.stopPropagation()}> {/* 전체 div에 한 번만 넣어도 OK */}
         <h4 style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Tag color={color} icon={icon}>{category}</Tag>
           <Tag color={importanceTagColor}>{importance}</Tag>
@@ -305,16 +305,36 @@ function MyCalendar() {
           기간: {moment(start).format('YYYY-MM-DD HH:mm')} ~ {moment(end).format('YYYY-MM-DD HH:mm')}
         </p>
         <div style={{ marginTop: '15px', textAlign: 'right' }}>
-          <Button size="small" style={{ marginRight: '8px' }} onClick={() => onEdit(event)}>
+          <Button 
+            size="small" 
+            style={{ marginRight: '8px' }} 
+            onClick={
+              (e) => {
+                e.stopPropagation();
+                onEdit(event);
+            }}>
             수정
           </Button>
           <Popconfirm
             title="정말 삭제하시겠습니까?"
-            onConfirm={() => onDelete(event.id)}
+            //onConfirm={() => onDelete(event.id)}
+            onConfirm={(e) => {
+              e?.stopPropagation();
+              onDelete(event.id);
+            }}
             okText="예"
             cancelText="아니오"
           >
-            <Button size="small" type="danger">삭제</Button>
+            <Button 
+              size="small" 
+              type="danger"
+              onClick={
+                (e) => {
+                  e.stopPropagation();
+                }
+              }>
+              삭제
+            </Button>
           </Popconfirm>
         </div>
       </div>
@@ -347,7 +367,8 @@ function MyCalendar() {
             onEdit={(event) => {
               showEventModal({ event });
             }}
-            onDelete={handleDeleteEvent}
+            //onDelete={handleDeleteEvent}
+            onDelete={ (id) => handleDeleteEvent(id)}
           />
         }
         title="일정 상세"
@@ -497,8 +518,14 @@ function MyCalendar() {
         selectable={true}
         events={events}
         //events={getFilteredEvents()} // 필터링된 이벤트 전달
-        dateClick={showEventModal} // 날짜 클릭 시 새 일정 모달 열기
-        eventClick={handleEventClick} // 이벤트 클릭 시 수정 모달 열기 (Popover를 통해 호출)
+        dateClick={(info) => {
+          //info.jsEvent.stopPropagation(); // 👈 중요
+          showEventModal
+        }} // 날짜 클릭 시 새 일정 모달 열기
+        eventClick={(info) => {
+          //info.jsEvent.stopPropagation(); // 👈 중요
+          handleEventClick
+        }} // 이벤트 클릭 시 수정 모달 열기 (Popover를 통해 호출)
         eventDrop={handleEventDrop} // 드래그앤드롭 후 API 호출
         eventResize={handleEventResize} // 리사이즈 후 API 호출
         eventContent={renderEventContent} // 커스텀 이벤트 렌더링 (팝오버 포함)

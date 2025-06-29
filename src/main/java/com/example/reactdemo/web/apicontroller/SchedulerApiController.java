@@ -91,25 +91,60 @@ public class SchedulerApiController {
     /**
      * 일정 수정
      * @since 2025.06.28
-     * @apiNote PUT /api/scheduler
+     * @apiNote PUT /api/scheduler/{id}
      * @param id
      * @param param
      * @return results
      */
     @PutMapping("/{id}") // URL 경로에서 ID를 변수로 받음
-    public ResponseEntity<ScheduleModelDto> updateSchedule(
+    public JsonResultApiModel updateSchedule(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id,
             @RequestBody ScheduleModelDto param) {
-        // 해당 ID의 일정이 존재하는지 확인
-//        if (!events.containsKey(id)) {
-//            // 없으면 HTTP 404 Not Found 반환
-//            return ResponseEntity.notFound().build();
-//        }
-        // 요청 본문으로 받은 객체에 URL의 ID를 설정 (데이터 일관성 유지)
-        param.setId(id);
-        //events.put(id, scheduleDto); // 기존 이벤트 덮어쓰기
-        // HTTP 200 OK 상태 코드와 함께 업데이트된 이벤트 객체 반환
-        return ResponseEntity.ok(param);
+
+        JsonResultApiModel result = new JsonResultApiModel();
+
+        if (id > 0) {
+
+            param.setId(id);
+            param.setUserAccountId(userDetails.getUsername());
+            result = scheduleService.updateSchedule(param);
+        } else {
+
+            logger.error("scheduleId is 0");
+        }
+
+        return result;
     }
+
+    /**
+     * 일정 수정
+     * @since 2025.06.29
+     * @apiNote DELETE /api/scheduler/{scheduleId}
+     * @param scheduleId
+     * @param userDetails
+     * @return JsonResultApiModel result
+     */
+    @DeleteMapping("/{scheduleId}")
+    public JsonResultApiModel deleteSchedule (@PathVariable long scheduleId,
+        @AuthenticationPrincipal UserDetails userDetails) {
+
+        JsonResultApiModel result = new JsonResultApiModel();
+
+        if (scheduleId > 0) {
+
+            ScheduleModelDto param = new ScheduleModelDto();
+            String userAccountId = userDetails.getUsername();
+            param.setId(scheduleId);
+            param.setUserAccountId(userAccountId);
+
+            result = scheduleService.deleteSchedule(param);
+        } else {
+
+            logger.error("scheduleId is 0");
+        }
+
+        return result;
+    }
+
 }
