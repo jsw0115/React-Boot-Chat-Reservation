@@ -10,6 +10,8 @@ import ProgressSummary from './components/ProgressSummary';
 import TodayTaskList from './components/TodayTaskList';
 import ChatWidget from './components/ChatWidget';
 
+import axiosInstance from './utils/axiosInstance'; // 새로 만든 인스턴스를 임포트
+
 // CSS 모듈 임포트
 import styles from './components/Home.module.css';
 
@@ -25,8 +27,8 @@ function Home() {
         try {
             // 여러 API를 동시에 호출하여 대시보드 데이터를 구성
             const [todaySchedulesResponse, todayRoutinesResponse] = await Promise.all([
-                axios.get("/api/schedules/today"), // 오늘의 일정 API (백엔드에 구현 필요)
-                axios.get("/api/routines/today"),  // 오늘의 루틴 API (백엔드에 구현 필요)
+                axiosInstance.get("/scheduler/list"), // 오늘의 일정 API (백엔드에 구현 필요)
+                axiosInstance.get("/manage/routine/list"),  // 오늘의 루틴 API (백엔드에 구현 필요)
             ]);
 
             // 받아온 데이터를 하나의 task 배열로 통합

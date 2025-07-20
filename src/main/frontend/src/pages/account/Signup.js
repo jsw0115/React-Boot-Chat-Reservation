@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import { Form, Input, Button, Card, Typography, message, notification, Space } from "antd"; // notification, Space 추가
+import { Form, Input, Button, Card, Typography, message, Space } from "antd";
 import {
     UserOutlined,
     LockOutlined,
@@ -9,13 +8,12 @@ import {
     IdcardOutlined,
     UserAddOutlined,
     LoginOutlined,
-    SecurityScanOutlined, // 인증코드 아이콘
+    SecurityScanOutlined,
 } from '@ant-design/icons';
-import './Signup.css'; // 기존 CSS 파일 사용
+import api from '../../utils/api'; // axios 대신 api 유틸리티 사용
+import './Signup.css';
 
 const { Title } = Typography;
-
-const API_BASE_URL = 'http://localhost:8080/api'; // 백엔드 API 주소
 
 function Signup() {
     const [loading, setLoading] = useState(false);
@@ -46,18 +44,19 @@ function Signup() {
 
         setIdCheckLoading(true);
         try {
-            const response = await axios.post(`${API_BASE_URL}/account/checkId`, { userAccountId });
-            if (response.data.isAvailable) { // 백엔드 응답이 `isAvailable: true` 형태라고 가정
+            // api 유틸리티 사용
+            const response = await api.post(`/account/checkId`, { userAccountId });
+            if (response.data.isSuccess && response.data.data.isAvailable) { // 백엔드 응답 형식에 맞게 수정
                 setIdAvailable(true);
                 message.success('사용 가능한 아이디입니다.');
             } else {
                 setIdAvailable(false);
-                message.error('이미 존재하는 아이디입니다.');
+                message.error(response.data.message || '이미 존재하는 아이디입니다.');
             }
         } catch (err) {
             console.error("ID 중복 확인 실패:", err);
             message.error('아이디 중복 확인 중 오류가 발생했습니다.');
-            setIdAvailable(false); // 오류 발생 시 사용 불가로 처리
+            setIdAvailable(false);
         } finally {
             setIdCheckLoading(false);
         }
@@ -72,10 +71,9 @@ function Signup() {
         }
         setEmailLoading(true);
         try {
-            // 백엔드 API 엔드포인트에 맞게 수정해주세요.
-            // 예: `/api/email/sendVerificationCode`
-            const response = await axios.post(`${API_BASE_URL}/account/sendVerificationCode`, { email });
-            if (response.data.isSuccess) { // 백엔드 응답이 `isSuccess: true` 형태라고 가정
+            // api 유틸리티 사용
+            const response = await api.post(`/account/sendVerificationCode`, { email });
+            if (response.data.isSuccess) {
                 setEmailSent(true);
                 message.success('인증코드가 이메일로 발송되었습니다. 메일함을 확인해주세요.');
             } else {
@@ -99,10 +97,9 @@ function Signup() {
         }
         setVerifyCodeLoading(true);
         try {
-            // 백엔드 API 엔드포인트에 맞게 수정해주세요.
-            // 예: `/api/email/verifyCode`
-            const response = await axios.post(`${API_BASE_URL}/account/verifyEmailCode`, { email, verificationCode });
-            if (response.data.isVerified) { // 백엔드 응답이 `isVerified: true` 형태라고 가정
+            // api 유틸리티 사용
+            const response = await api.post(`/account/verifyEmailCode`, { email, verificationCode });
+            if (response.data.isSuccess && response.data.data.isVerified) { // 백엔드 응답 형식에 맞게 수정
                 setEmailVerified(true);
                 message.success('이메일 인증이 완료되었습니다.');
             } else {
@@ -131,8 +128,9 @@ function Signup() {
 
         setLoading(true);
         try {
-            const { userAccountId, password, email, username } = values; // 폼에서 가져온 값
-            const response = await axios.post(`${API_BASE_URL}/account/register`, { userAccountId, password, email, username });
+            const { userAccountId, password, email, username } = values;
+            // api 유틸리티 사용
+            const response = await api.post(`/account/register`, { userAccountId, password, email, username });
 
             if (response.data.isSuccess === true) {
                 message.success("회원가입 성공! 로그인 페이지로 이동합니다.");
@@ -170,22 +168,26 @@ function Signup() {
                     <Form.Item
                         label="아이디"
                         name="userAccountId"
-                        hasFeedback // 유효성 검사 피드백 아이콘 표시
+                        hasFeedback
                         validateStatus={idAvailable === true ? 'success' : idAvailable === false ? 'error' : ''}
                         rules={[
                             { required: true, message: '아이디를 입력해주세요!' },
                             { min: 4, message: '아이디는 최소 4자 이상이어야 합니다.' },
                             ({ getFieldValue }) => ({
                                 validator(_, value) {
-                                    if (value && idAvailable === false && getFieldValue('userAccountId') === value) {
+                                    if (!value) {
+                                        setIdAvailable(null); // 값이 없으면 초기 상태로
+                                        return Promise.resolve();
+                                    }
+                                    if (idAvailable === false && getFieldValue('userAccountId') === value) {
                                         return Promise.reject(new Error('이미 존재하는 아이디입니다.'));
                                     }
-                                    if (value && idAvailable === true && getFieldValue('userAccountId') === value) {
+                                    if (idAvailable === true && getFieldValue('userAccountId') === value) {
                                         return Promise.resolve();
                                     }
                                     // 사용자가 입력 필드를 다시 수정하면, 중복 확인 상태 초기화
                                     if (idAvailable !== null && form.isFieldTouched('userAccountId') && getFieldValue('userAccountId') !== value) {
-                                         setIdAvailable(null);
+                                        setIdAvailable(null);
                                     }
                                     return Promise.resolve();
                                 },
@@ -201,7 +203,7 @@ function Signup() {
                                     type="link"
                                     onClick={handleIdCheck}
                                     loading={idCheckLoading}
-                                    disabled={idAvailable === true} // 사용 가능하면 버튼 비활성화
+                                    disabled={idAvailable === true || !form.getFieldValue('userAccountId') || form.getFieldValue('userAccountId').length < 4}
                                 >
                                     {idAvailable === true ? '확인됨' : '중복확인'}
                                 </Button>
@@ -228,7 +230,8 @@ function Signup() {
                             size="large"
                         />
                     </Form.Item>
-                    {/* 비밀번호 확인 필드 (선택 사항, 필요하면 추가)
+
+                    {/* 비밀번호 확인 필드 */}
                     <Form.Item
                         label="비밀번호 확인"
                         name="confirmPassword"
@@ -252,7 +255,6 @@ function Signup() {
                             size="large"
                         />
                     </Form.Item>
-                    */}
 
                     {/* 이메일 입력 필드와 인증 관련 버튼 */}
                     <Form.Item
@@ -267,13 +269,13 @@ function Signup() {
                             prefix={<MailOutlined />}
                             placeholder="이메일"
                             size="large"
-                            disabled={emailSent} // 발송 후에는 이메일 변경 불가
+                            disabled={emailSent || emailVerified} // 발송 후 또는 인증 성공 후에는 이메일 변경 불가
                             suffix={
                                 <Button
                                     type="link"
                                     onClick={sendVerificationCode}
                                     loading={emailLoading}
-                                    disabled={emailSent} // 발송 후에는 버튼 비활성화
+                                    disabled={emailSent || emailVerified || !form.getFieldValue('email') || form.getFieldError('email').length > 0}
                                 >
                                     {emailSent ? '재전송' : '인증코드 발송'}
                                 </Button>
@@ -297,7 +299,7 @@ function Signup() {
                                         type="link"
                                         onClick={verifyEmailCode}
                                         loading={verifyCodeLoading}
-                                        disabled={emailVerified} // 인증 성공 후에는 비활성화
+                                        disabled={emailVerified || !form.getFieldValue('verificationCode')}
                                     >
                                         {emailVerified ? '확인됨' : '확인'}
                                     </Button>
@@ -327,6 +329,7 @@ function Signup() {
                             icon={<UserAddOutlined />}
                             size="large"
                             block
+                            disabled={idAvailable !== true || emailVerified !== true} // 아이디 중복 확인, 이메일 인증 필수
                         >
                             회원가입
                         </Button>

@@ -5,6 +5,8 @@ import com.example.reactdemo.web.model.dto.user.CustomUserDetails;
 import com.example.reactdemo.web.model.entity.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,6 +20,7 @@ import java.util.List;
 @Component
 public class JwtProvider {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final String secretKey;
     private final UserRepository userRepository;
 
@@ -48,9 +51,15 @@ public class JwtProvider {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+//            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+            Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
+
+            logger.warn("Invalid JWT: {}", e.getMessage());
             return false;
         }
     }

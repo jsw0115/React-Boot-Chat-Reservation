@@ -90,6 +90,7 @@ public class AccountApiController {
 
             Authentication authentication = authenticationManager.authenticate(token);
 
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             SecurityContext context = SecurityContextHolder.getContext();
             context.setAuthentication(authentication);
 

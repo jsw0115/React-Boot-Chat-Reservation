@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -13,6 +13,8 @@ import { CalendarOutlined, PushpinOutlined, TeamOutlined, QuestionCircleOutlined
 import { Popover, Checkbox } from 'antd';
 import axios from 'axios'; // axios 임포트
 
+import axiosInstance from './../../utils/axiosInstance'; // 새로 만든 인스턴스를 임포트
+
 // Moment.js 한국어 설정
 moment.locale('ko');
 
@@ -20,7 +22,7 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 // API 기본 URL 설정 (백엔드 서버 주소로 변경하세요!)
-const API_BASE_URL = 'http://localhost:8080/api'; // 예시: 스프링 부트 백엔드 API 주소
+// const API_BASE_URL = 'http://localhost:8080/api'; // 예시: 스프링 부트 백엔드 API 주소
 
 // 카테고리별 색상 및 아이콘 매핑
 const categoryMap = {
@@ -59,13 +61,24 @@ function MyCalendar() {
   // --- 1. 초기 데이터 로드 (컴포넌트 마운트 시) ---
   const fetchEvents = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/scheduler`, 
-        {
+      // const response = await axios.get(
+      //   `${API_BASE_URL}/scheduler/list`,
+      //   {
+      //     headers: {Authorization: `Bearer ${token}`},
+      //     withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+      //   }
+      // );
+      // const response = await Promise.all(
+      //   axiosInstance.get("/scheduler/list", {
+      //     headers: {Authorization: `Bearer ${token}`},
+      //     // withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+      //   }), // 오늘의 일정 API (백엔드에 구현 필요)
+      // );
+      const response = await axiosInstance.get("/scheduler/list", {
           headers: {Authorization: `Bearer ${token}`},
-          withCredentials: true // ← 쿠키 기반 인증인 경우 필요
-        }
-      );
+          // withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+      }); // 오늘의 일정 API (백엔드에 구현 필요)
+      
       
       console.log(response.data);
       
@@ -97,7 +110,14 @@ function MyCalendar() {
     }
   }, [token]);
 
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
+    if (hasFetchedRef.current) {
+      return;
+    }
+
+    hasFetchedRef.current = true;
     fetchEvents();
   }, [fetchEvents]); // fetchEvents가 변경될 때 (최초 렌더링 시) 실행
 
@@ -152,25 +172,44 @@ function MyCalendar() {
       if (currentEvent) {
         // --- 3-1. 일정 수정 (PUT API) ---
         const scheduleId = currentEvent.id; // 수정할 이벤트의 ID
-        await axios.put(
-          `${API_BASE_URL}/scheduler/${scheduleId}`, 
-          eventDataToSend, 
+        // await axios.put(
+        //   `${API_BASE_URL}/scheduler/${scheduleId}`, 
+        //   eventDataToSend, 
+        //   {
+        //     headers: {Authorization: `Bearer ${token}`},
+        //     withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+        //   }
+        // );
+        
+        await axiosInstance.put(`/scheduler/${scheduleId}`,
+          eventDataToSend,
           {
             headers: {Authorization: `Bearer ${token}`},
-            withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+            // withCredentials: true // ← 쿠키 기반 인증인 경우 필요
           }
         );
+
+
         message.success('일정이 성공적으로 수정되었습니다.');
       } else {
         // --- 3-2. 일정 추가 (POST API) ---
-        await axios.post(
-          `${API_BASE_URL}/scheduler`, 
-          eventDataToSend, 
+        // await axios.post(
+        //   `${API_BASE_URL}/scheduler`, 
+        //   eventDataToSend, 
+        //   {
+        //     headers: {Authorization: `Bearer ${token}`},
+        //     withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+        //   }
+        // );
+
+        await axiosInstance.post("/scheduler",
+          eventDataToSend,
           {
             headers: {Authorization: `Bearer ${token}`},
-            withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+            // withCredentials: true // ← 쿠키 기반 인증인 경우 필요
           }
         );
+
         message.success('새 일정이 성공적으로 추가되었습니다.');
       }
 
@@ -211,13 +250,21 @@ function MyCalendar() {
   // --- 4. 일정 삭제 API 호출 ---
   const handleDeleteEvent = async (scheduleId) => {
     try {
-      await axios.delete(
-        `${API_BASE_URL}/scheduler/${scheduleId}`, 
+      // await axios.delete(
+      //   `${API_BASE_URL}/scheduler/${scheduleId}`, 
+      //   {
+      //     headers: {Authorization: `Bearer ${token}`},
+      //     withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+      //   }
+      // );
+
+      await axiosInstance.delete(`/scheduler/${scheduleId}`,
         {
           headers: {Authorization: `Bearer ${token}`},
           withCredentials: true // ← 쿠키 기반 인증인 경우 필요
         }
       );
+
       message.success('일정이 성공적으로 삭제되었습니다.');
       //setIsModalVisible(false); // 모달 닫기
       setIsModalOpen(false); // visible -> open
@@ -252,6 +299,15 @@ function MyCalendar() {
           withCredentials: true // ← 쿠키 기반 인증인 경우 필요
         }
       );
+
+      await axiosInstance.put(`/scheduler/${scheduleId}`,
+        updatedEventData,
+        {
+          headers: {Authorization: `Bearer ${token}`},
+          withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+        }
+      );
+
       message.success('일정 시간이 성공적으로 변경되었습니다.');
       // fetchEvents()를 호출하여 최신 상태를 유지하거나,
       // 직접 events 상태를 업데이트하여 불필요한 API 호출을 줄일 수 있습니다.

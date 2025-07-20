@@ -8,11 +8,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+//@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -25,8 +27,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = extractToken(request);
 
+        String authHeader = request.getHeader("Authorization");
+        logger.info("Request URI: " + request.getRequestURI());
+        logger.info("Authorization Header: " + authHeader);
+
         if (token != null && jwtProvider.validateToken(token)) {
             String username = jwtProvider.getUsername(token);
+            logger.info("JwtAuthenticationFilter username ? " + username);
 
             var userDetails = jwtProvider.getUserDetails(username);
 
@@ -37,16 +44,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+
+            logger.warn("JWT 토큰 유효성 실패 또는 토큰 없음: {}");
         }
 
         filterChain.doFilter(request, response);
     }
 
     private String extractToken(HttpServletRequest request) {
+
         String bearerToken = request.getHeader("Authorization");
+        logger.info("bearerToken ? " + bearerToken);
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
         return null;
     }
+
 }

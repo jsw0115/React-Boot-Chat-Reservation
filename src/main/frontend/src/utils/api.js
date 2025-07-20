@@ -14,9 +14,13 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = getToken();
+        //const token = getToken();
+        // localStorage에서 토큰을 가져옵니다.
+        const token = localStorage.getItem('jwtToken');
+
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            //config.headers.Authorization = `Bearer ${token}`;
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
         return config;
     },

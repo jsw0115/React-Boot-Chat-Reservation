@@ -37,7 +37,7 @@ public class SchedulerApiController {
      * @param param
      * @return results
      */
-    @GetMapping
+    @GetMapping("/list")
     public List<ScheduleModelDto> getScheduleList(
             @AuthenticationPrincipal UserDetails userDetails,
             ScheduleParamModelDto param) {

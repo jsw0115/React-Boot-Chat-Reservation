@@ -1,0 +1,29 @@
+.find-id-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  padding: 20px;
+}
+
+.find-id-card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.find-id-form .ant-input-prefix {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.find-id-button {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.login-redirect-button {
+  width: 100%;
+  margin-top: 10px;
+}

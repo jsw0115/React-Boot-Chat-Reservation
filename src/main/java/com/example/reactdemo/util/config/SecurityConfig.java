@@ -35,6 +35,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -45,6 +46,25 @@ public class SecurityConfig {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final UserRepository userRepository;
 //    private final JwtAuthFilter jwtAuthFilter;
+//    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
+//    private final JwtProvider jwtProvider;
+//
+//    @Bean
+//    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+//        return new JwtAuthenticationFilter(jwtProvider);
+//    }
+
+    @Bean
+    public JwtProvider jwtProvider() {
+        return new JwtProvider(secretKey, userRepository);
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtProvider());  // ← 직접 호출
+    }
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -63,9 +83,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/index.html", "/login", "/signup", "/login/**", "/signup/**",
                                 "/static/**", "/css/**", "/js/**", "/h2-console/**", "/api/account/**", "/ws/**", "/oauth2/**"
+//                                ,"/api/**"
                         ).permitAll()
                         .requestMatchers("/auth/**").authenticated()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
@@ -81,7 +102,8 @@ public class SecurityConfig {
 //                        .successHandler(oAuth2SuccessHandler())
 //                )
                 // jwt 토큰
-//                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -122,10 +144,14 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
+//        config.setAllowCredentials(true);
+//        config.addAllowedOrigin("http://localhost:3000");
+//        config.addAllowedHeader("*");
+//        config.addAllowedMethod("*");
+        config.setAllowedOrigins(List.of("http://localhost:3000")); // React 주소
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -144,10 +170,10 @@ public class SecurityConfig {
         }
     }
 
-    @Bean
-    public JwtProvider jwtProvider() {
-        return new JwtProvider(secretKey, userRepository);
-    }
+//    @Bean
+//    public JwtProvider jwtProvider() {
+//        return new JwtProvider(secretKey, userRepository);
+//    }
 
     /*
     @Bean
