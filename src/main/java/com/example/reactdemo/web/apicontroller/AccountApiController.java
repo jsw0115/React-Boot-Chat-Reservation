@@ -2,6 +2,8 @@ package com.example.reactdemo.web.apicontroller;
 
 import com.example.reactdemo.db.service.UserService;
 import com.example.reactdemo.util.security.JwtProvider;
+import com.example.reactdemo.web.model.dto.user.ApiResponse;
+import com.example.reactdemo.web.model.dto.user.EmailVerificationRequest;
 import com.example.reactdemo.web.model.dto.user.LoginRequestDto;
 import com.example.reactdemo.web.model.entity.User;
 import com.example.reactdemo.web.model.models.JsonResultApiModel;
@@ -40,6 +42,7 @@ import java.util.Map;
 public class AccountApiController {
 
     private final Logger logger = LoggerFactory. getLogger(this.getClass());
+
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
@@ -139,6 +142,7 @@ public class AccountApiController {
      */
     @PostMapping("/jwtLogin")
     public ResponseEntity<?> jwtLogin(@Valid @RequestBody LoginRequestDto loginRequest, BindingResult bindingResult) {
+
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body("Invalid input");
         }
@@ -155,17 +159,43 @@ public class AccountApiController {
             // 인증 성공 시 토큰 생성
             String token = jwtProvider.generateToken(userDetails);
 
-
+            logger.info("token ? " + token);
             return ResponseEntity.ok().body(new JwtResponse(token));
-
         } catch (BadCredentialsException ex) {
+
+            logger.error("Invalid credentials, ex {}", ex);
             return ResponseEntity.status(401).body(new ErrorResponse("Invalid credentials"));
         } catch (AuthenticationException ex) {
+
+            logger.error("Authentication failed, ex {}", ex);
             return ResponseEntity.status(401).body(new ErrorResponse("Authentication failed"));
         }
     }
 
-    // JWT 토큰 반환용 DTO
+    /**
+     * 이메일 인증 코드 발송
+     */
+    @RequestMapping(method = RequestMethod.POST, path = "/sendVerificationCode")
+    public ResponseEntity<ApiResponse<Void>> sendVerificationCode(@Valid @RequestBody EmailVerificationRequest request) {
+
+        try {
+            JsonResultApiModel result = new JsonResultApiModel();
+            result = userService.sendEmailVerificationCode(request.getEmail());
+
+            return ResponseEntity.ok(ApiResponse.success("인증 코드가 이메일로 발송되었습니다."));
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        } catch (Exception e) {
+
+            logger.error("이메일 인증 코드 발송 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("서버 오류가 발생했습니다."));
+        }
+    }
+
+    /**
+     * JWT 토큰 반환용 DTO
+     */
     public static class JwtResponse {
         private String token;
 
@@ -180,7 +210,9 @@ public class AccountApiController {
         }
     }
 
-    // 에러 메시지 DTO
+    /**
+     * 에러 메시지 DTO
+     */
     public static class ErrorResponse {
         private String message;
 

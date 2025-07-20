@@ -44,6 +44,7 @@ public class SecurityConfig {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final UserRepository userRepository;
+//    private final JwtAuthFilter jwtAuthFilter;
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -80,7 +81,7 @@ public class SecurityConfig {
 //                        .successHandler(oAuth2SuccessHandler())
 //                )
                 // jwt 토큰
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -148,6 +149,7 @@ public class SecurityConfig {
         return new JwtProvider(secretKey, userRepository);
     }
 
+    /*
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtProvider());
@@ -161,5 +163,5 @@ public class SecurityConfig {
     @Bean
     public OAuth2SuccessHandler oAuth2SuccessHandler() {
         return new OAuth2SuccessHandler(jwtProvider(), userService());
-    }
+    }*/
 }

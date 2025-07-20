@@ -1,20 +1,28 @@
 package com.example.reactdemo.db.service;
 
+import com.example.reactdemo.db.repository.EmailVerificationTokenRepository;
+import com.example.reactdemo.db.repository.PasswordResetTokenRepository;
 import com.example.reactdemo.db.repository.UserRepository;
 import com.example.reactdemo.enums.ProviderEnum;
 import com.example.reactdemo.enums.UserRole;
 import com.example.reactdemo.util.helper.UtcHelper;
 import com.example.reactdemo.util.security.PasswordEncryptor;
+import com.example.reactdemo.web.model.entity.EmailVerificationToken;
 import com.example.reactdemo.web.model.entity.User;
 import com.example.reactdemo.web.model.models.JsonResultApiModel;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * User 정보 관련 Service
@@ -24,9 +32,13 @@ import java.sql.Timestamp;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserRepository userRepository;
-//    private final PasswordEncoder encoder;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder encoder;
+    private final EmailService emailService; // EmailService 주입
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository; // EmailVerificationTokenRepository 주입
+    private final PasswordResetTokenRepository passwordResetTokenRepository; // PasswordResetTokenRepository 주입
 
     /**
      * 회원가입 로직 생성
@@ -137,5 +149,36 @@ public class UserService {
                 newUser.setRole(UserRole.USER_ROLE.getCode());
                 return userRepository.save(newUser);
             });
+    }
+
+    /**
+     * 이메일 인증 코드 전송
+     * @param email
+     */
+    @Transactional
+    public JsonResultApiModel sendEmailVerificationCode(String email) {
+
+        JsonResultApiModel result = new JsonResultApiModel();
+        // 이미 해당 이메일로 가입된 유저가 있는지 확인
+        if (userRepository.findByEmail(email).isPresent()) {
+
+            throw new IllegalArgumentException("이미 가입된 이메일입니다. 로그인 해주세요");
+        }
+
+        // 기존에 발급된 미사용 토큰이 있다면 삭제하거나 갱신
+        emailVerificationTokenRepository.findByEmail(email).ifPresent(emailVerificationTokenRepository::delete);
+
+        String verificationCode = UUID.randomUUID().toString().substring(0, 6); // 6자리 코드 생성
+        LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(10); // 10분 유효
+
+        EmailVerificationToken token = new EmailVerificationToken(verificationCode, email, expiryDate);
+        emailVerificationTokenRepository.save(token);
+
+        String subject = "[내 서비스] 이메일 인증 코드입니다.";
+        String text = "회원가입을 완료하려면 다음 인증 코드를 입력해주세요: " + verificationCode + "\n\n" +
+                "이 코드는 10분 동안 유효합니다.";
+        emailService.sendEmail(email, subject, text);
+
+        return result;
     }
 }
