@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -57,8 +58,12 @@ public class UserService {
 
             if (userRepository.existsByUserAccountId(user.getUserAccountId())) {
 
-                message = "중복된 아이디입니다.";
+                message = "이미 사용 중인 아이디입니다.";
                 isSuccess = false;
+//            } else if (userRepository.existsByEmail(user.getEmail())) {
+//
+//                message = "이미 가입된 이메일입니다.";
+//                isSuccess = false;
             } else {
 
                 // 회원가입 정보
@@ -180,5 +185,16 @@ public class UserService {
         emailService.sendEmail(email, subject, text);
 
         return result;
+    }
+
+    /**
+     * 6자리 랜덤 숫자 코드 생성
+    */
+    private String createRandomCode() {
+
+        Random random = new Random();
+        int code = 100000 + random.nextInt(900000);
+
+        return String.valueOf(code);
     }
 }

@@ -25,6 +25,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+
+        String path = request.getRequestURI();
+
+        // JWT 인증이 필요 없는 경로 리스트
+        if (path.startsWith("/signup") || path.startsWith("/login") ||
+                path.startsWith("/oauth2") || path.startsWith("/api/account") ||
+                path.startsWith("/static") || path.startsWith("/ws")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = extractToken(request);
 
         String authHeader = request.getHeader("Authorization");

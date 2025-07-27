@@ -78,15 +78,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults()) // import static org.springframework.security.config.Customizer.withDefaults;
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/index.html", "/login", "/signup", "/login/**", "/signup/**",
                                 "/static/**", "/css/**", "/js/**", "/h2-console/**", "/api/account/**", "/ws/**", "/oauth2/**"
-//                                ,"/api/**"
                         ).permitAll()
                         .requestMatchers("/auth/**").authenticated()
-                        .anyRequest().permitAll()
+                        .anyRequest().permitAll() // 이게 있으니 사실상 위 authenticated는 의미 없음
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
@@ -103,7 +102,6 @@ public class SecurityConfig {
 //                )
                 // jwt 토큰
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -118,13 +116,7 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                 )
                 .sessionManagement(session -> session
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(true)
-                )
-                .sessionManagement(session -> session
-                        .sessionFixation(SessionCreationPolicy.STATELESS.equals(SessionCreationPolicy.STATELESS) ?
-                                sessionFixation -> sessionFixation.newSession() : sessionFixation -> sessionFixation.newSession())
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT는 무상태!
                 );
 
         return http.build();

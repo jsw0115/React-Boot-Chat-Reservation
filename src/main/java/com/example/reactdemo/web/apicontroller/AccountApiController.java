@@ -1,8 +1,10 @@
 package com.example.reactdemo.web.apicontroller;
 
+import com.example.reactdemo.db.service.AccountService;
 import com.example.reactdemo.db.service.UserService;
 import com.example.reactdemo.util.security.JwtProvider;
 import com.example.reactdemo.web.model.dto.user.ApiResponse;
+import com.example.reactdemo.web.model.dto.user.CheckIdRequestDto;
 import com.example.reactdemo.web.model.dto.user.EmailVerificationRequest;
 import com.example.reactdemo.web.model.dto.user.LoginRequestDto;
 import com.example.reactdemo.web.model.entity.User;
@@ -44,6 +46,7 @@ public class AccountApiController {
     private final Logger logger = LoggerFactory. getLogger(this.getClass());
 
     private final UserService userService;
+    private final AccountService accountService;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
 
@@ -117,11 +120,13 @@ public class AccountApiController {
 
     /**
      * 로그아웃 API Controller
-     *
+     * @param request
+     * @return ResonseEntity
      */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpServletRequest request) {
 
+        logger.info("AccountApiController, logout Start");
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
@@ -138,7 +143,9 @@ public class AccountApiController {
     /**
      * jwt 토큰으로 로그인하는 방식
      * @since 2025.06.28
-     * @param
+     * @param   loginRequest
+     * @param   bindingResult
+     * @since 2025.07.18
      * @apiNote
      */
     @PostMapping("/jwtLogin")
@@ -175,15 +182,17 @@ public class AccountApiController {
 
     /**
      * 이메일 인증 코드 발송
+     * @param request
+     * @return ResponseEntity
      */
     @RequestMapping(method = RequestMethod.POST, path = "/sendVerificationCode")
-    public ResponseEntity<ApiResponse<Void>> sendVerificationCode(@Valid @RequestBody EmailVerificationRequest request) {
+    public ResponseEntity<ApiResponse<?>> sendVerificationCode(@Valid @RequestBody EmailVerificationRequest request) {
 
+        JsonResultApiModel result = new JsonResultApiModel();
         try {
-            JsonResultApiModel result = new JsonResultApiModel();
             result = userService.sendEmailVerificationCode(request.getEmail());
 
-            return ResponseEntity.ok(ApiResponse.success("인증 코드가 이메일로 발송되었습니다."));
+            return ResponseEntity.ok(ApiResponse.success("인증 코드가 이메일로 발송되었습니다.", result));
         } catch (IllegalArgumentException e) {
 
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
@@ -193,6 +202,48 @@ public class AccountApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("서버 오류가 발생했습니다."));
         }
     }
+
+    /**
+     * 이메일 인증코드 확인 API
+     * @param requestDto
+     * @return ResponseEntity
+     */
+    @RequestMapping(value = "/sendVertificationCode", method = RequestMethod.POST)
+    public ResponseEntity<ApiResponse<?>> sendVertificationCode(@RequestBody @Valid EmailVerificationRequest requestDto) {
+
+        JsonResultApiModel result = new JsonResultApiModel();
+        try {
+
+            result = accountService.verifyEmailCode(requestDto.getEmail(), requestDto.getVertificationCode());
+            return ResponseEntity.ok(ApiResponse.success("인증 코드가 이메일로 발송되었습니다.", result));
+        } catch (Exception e) {
+
+            logger.error("이메일 인증코드 확인 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("서버 오류가 발생했습니다."));
+        }
+    }
+
+    /**
+     * 아이디 중복 확인
+     * @param requestDto
+     * @return ResponseEntity
+     * @since 2025.07.27
+     */
+    @RequestMapping(value = "/checkId", method = RequestMethod.POST)
+    public ResponseEntity<ApiResponse<?>> checkId(@RequestBody @Valid CheckIdRequestDto requestDto) {
+
+        JsonResultApiModel result = new JsonResultApiModel();
+        try {
+
+            result = accountService.isIdAvailable(requestDto.getUserAccountId());
+            return ResponseEntity.ok(ApiResponse.success("아이디 중복 확인 성공", result));
+        } catch (Exception e) {
+
+            logger.error("아이디 중복 확인 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("서버 오류가 발생했습니다."));
+        }
+    }
+
 
     /**
      * JWT 토큰 반환용 DTO
