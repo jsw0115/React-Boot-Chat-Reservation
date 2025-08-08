@@ -18,6 +18,8 @@ function Login({ setAuth }) {
     const handleLocalLogin = async () => {
         setLoadingLocal(true);
         try {
+
+            // 폼의 입력 값 유효성 검사
             const values = await form.validateFields();
             const { userAccountId, password } = values;
 
@@ -58,12 +60,9 @@ function Login({ setAuth }) {
                 password,
             });
 
-//            console.log("response.data.isSuccess ? " + response.data.isSuccess);
-//            console.log("response.data.data ? " + response.data.data);
             console.log("response.data.token ? " + response.data.token);
 
             // 백엔드에서 응답 바디에 JWT 토큰을 포함하여 보낸다고 가정
-//            if (response.data.isSuccess && response.data.data && response.data.data.token) {
             if (response.data.token) {
                 setToken(response.data.token); // 토큰을 localStorage에 저장
                 message.success("JWT 로그인 성공! 메인화면으로 이동합니다.");
@@ -73,8 +72,19 @@ function Login({ setAuth }) {
                 throw new Error(response.data.message || "JWT 로그인 실패: 토큰이 없습니다.");
             }
         } catch (err) {
-            const errorMessage = err.response?.data?.message || err.message || "JWT 로그인 중 오류가 발생했습니다.";
-            message.error("JWT 로그인 실패: " + errorMessage);
+//            const errorMessage = err.response?.data?.message || err.message || "JWT 로그인 중 오류가 발생했습니다.";
+//            message.error("JWT 로그인 실패: " + errorMessage);
+            if (err.response && err.response.status === 401) {
+
+                // 백엔드에서 보낸 에러 메시지 (예: "아이디 또는 비밀번호가...")를 추출
+                const errorMessage = err.response.data.message || "로그인 정보가 올바르지 않습니다.";
+
+                // alert()를 사용하여 사용자에게 에러 메시지 표시
+                alert(errorMessage);
+            } else {
+
+                alert("로그인 중 알 수 없는 오류가 발생했습니다.");
+            }
         } finally {
             setLoadingJwt(false);
         }
@@ -127,6 +137,7 @@ function Login({ setAuth }) {
 
                     <Form.Item>
                         <Space direction="vertical" style={{ width: '100%' }}>
+                            {/*
                             <Button
                                 type="default"
                                 onClick={handleLocalLogin}
@@ -138,6 +149,8 @@ function Login({ setAuth }) {
                             >
                                 로컬 로그인
                             </Button>
+                            */}
+                            
                             <Button
                                 type="primary"
                                 onClick={handleJwtLogin}

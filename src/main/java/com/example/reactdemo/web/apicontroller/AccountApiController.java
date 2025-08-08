@@ -171,8 +171,9 @@ public class AccountApiController {
             return ResponseEntity.ok().body(new JwtResponse(token));
         } catch (BadCredentialsException ex) {
 
-            logger.error("Invalid credentials, ex {}", ex);
-            return ResponseEntity.status(401).body(new ErrorResponse("Invalid credentials"));
+            // 프론트엔드에 401 응답과 에러 메시지를 보내는 것은 그대로 유지합니다.
+            // 메시지를 사용자 친화적으로 변경하는 것이 좋습니다.
+            return ResponseEntity.status(401).body(new ErrorResponse("아이디 또는 비밀번호가 일치하지 않습니다."));
         } catch (AuthenticationException ex) {
 
             logger.error("Authentication failed, ex {}", ex);

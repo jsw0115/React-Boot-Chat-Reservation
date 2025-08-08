@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
@@ -36,6 +37,9 @@ public class Routine {
     private Timestamp createDt;
     @Column(name = "update_dt", nullable = false)
     private Timestamp updateDt;
+    // 2025.08.03 jsw - 컬럼 추가
+    @Column(name = "priority", nullable = false)
+    private int priority; // 1: 높음, 2: 중간, 3: 낮음
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -44,4 +48,7 @@ public class Routine {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "repeat_rule_id")
     private RoutineRepeat routineRepeat;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<Task> tasks;
 }
