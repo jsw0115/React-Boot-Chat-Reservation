@@ -48,6 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             var userDetails = jwtProvider.getUserDetails(username);
 
+            if (userDetails == null) {
+                logger.warn("userDetails 가 null 입니다. 인증 실패 처리");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return; // 더 이상 진행하지 않음
+            }
+
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
@@ -58,6 +64,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } else {
 
             logger.warn("JWT 토큰 유효성 실패 또는 토큰 없음: {}");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+            return;
         }
 
         filterChain.doFilter(request, response);

@@ -17,7 +17,7 @@ public record RoutineResponseDto(
         String title,
         RepeatRuleDto repeatRule,
         List<TaskDto> tasks,
-        int completedTaskCount,
+//        int completedTaskCount,
         int totalTaskCount,
         Timestamp startTime, // 추가
         Timestamp endTime    // (필요시 endTime도)
@@ -28,9 +28,9 @@ public record RoutineResponseDto(
                 routine.getTitle(),
                 new RepeatRuleDto(routine.getRoutineRepeat()),
                 routine.getTasks().stream()
-                        .map(task -> new TaskDto(task.getId(), task.getContent()))
+                        .map(task -> new TaskDto(task.getId(), task.getContent(), task.getTaskType(), task.getGoalCount(), task.getTimerInSeconds()))
                         .collect(Collectors.toList()),
-                (int) routine.getTasks().stream().filter(Task::isCompleted).count(),
+//                (int) routine.getTasks().stream().filter(Task::isCompleted).count(),
                 routine.getTasks().size(),
                 routine.getStartTime(),  // 추가
                 routine.getEndTime()     // 추가

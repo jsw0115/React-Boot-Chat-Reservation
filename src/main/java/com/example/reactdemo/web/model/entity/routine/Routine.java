@@ -41,14 +41,14 @@ public class Routine {
     @Column(name = "priority", nullable = false)
     private int priority; // 1: 높음, 2: 중간, 3: 낮음
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "repeat_rule_id")
     private RoutineRepeat routineRepeat;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "routine", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<Task> tasks;
 }

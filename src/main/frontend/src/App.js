@@ -14,14 +14,7 @@ import { getToken, removeToken } from './utils/auth';
 import { message } from 'antd'; // 로그아웃 메시지
 
 function App() {
-    // const [auth, setAuth] = useState(false);
-
-    // // 앱 시작 시 토큰 확인해서 로그인 상태 복구
-    // useEffect(() => {
-    //     if (getToken()) {
-    //         setAuth(true);
-    //     }
-    // }, []);
+    
     const [auth, setAuth] = useState(() => !!getToken());
 
     useEffect(() => {

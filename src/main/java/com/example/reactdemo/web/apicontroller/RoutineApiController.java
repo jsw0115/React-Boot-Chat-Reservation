@@ -76,10 +76,10 @@ public class RoutineApiController {
     @GetMapping("/getRoutines")
     public ResponseEntity<ApiResponse<?>> getRoutines(@AuthenticationPrincipal UserDetails userDetails) {
 
-        logger.info("SchedulerApiController, getRoutines");
+        logger.info("RoutineApiController, getRoutines");
         try {
             String userAccountId = userDetails.getUsername();
-            JsonResultApiModel result = routineService.getTodayRoutines(userAccountId);
+            JsonResultApiModel result = routineService.getRoutines(userAccountId);
             return ResponseEntity.ok(ApiResponse.success("오늘 루틴 조회 성공", result));
         } catch (Exception e) {
             logger.error("오늘 루틴 조회 중 오류: {}", e.getMessage(), e);
@@ -101,6 +101,22 @@ public class RoutineApiController {
             @RequestBody @Valid RoutineRequestDto requestDto) {
 
         logger.info("SchedulerApiController, createRoutine");
+        if (requestDto != null) {
+
+            logger.info("requestDto, title ? " + requestDto.title());
+            logger.info("requestDto, category ? " + requestDto.category());
+            logger.info("requestDto, memo ? " + requestDto.memo());
+            logger.info("requestDto, startTime ? " + requestDto.startTime());
+            logger.info("requestDto, endTime ? " + requestDto.endTime());
+            logger.info("requestDto, repeatDays ? " + requestDto.repeatDays());
+            logger.info("requestDto, repeatType ? " + requestDto.repeatType());
+            logger.info("requestDto, repeatInterval ? " + requestDto.repeatInterval());
+            logger.info("requestDto, dayOfMonth ? " + requestDto.dayOfMonth());
+            logger.info("requestDto, weekOfMonth ? " + requestDto.weekOfMonth());
+            logger.info("requestDto, startDt ? " + requestDto.startDt());
+            logger.info("requestDto, endDt ? " + requestDto.endDt());
+            logger.info("requestDto, tasks ? " + requestDto.tasks());
+        }
         try {
             String userAccountId = userDetails.getUsername();
             JsonResultApiModel result = routineService.createRoutine(userAccountId, requestDto);

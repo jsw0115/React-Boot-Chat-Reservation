@@ -4,9 +4,11 @@ import com.example.reactdemo.db.repository.RoutineRepeatRepository;
 import com.example.reactdemo.db.repository.RoutineRepository;
 import com.example.reactdemo.db.repository.TaskRepository;
 import com.example.reactdemo.db.repository.UserRepository;
+import com.example.reactdemo.util.helper.DateTimeFormatHelper;
 import com.example.reactdemo.web.model.dto.routine.RoutineDashboardResponseDto;
 import com.example.reactdemo.web.model.dto.routine.RoutineRequestDto;
 import com.example.reactdemo.web.model.dto.routine.RoutineResponseDto;
+import com.example.reactdemo.web.model.dto.routine.TaskDto;
 import com.example.reactdemo.web.model.entity.User;
 import com.example.reactdemo.web.model.entity.routine.Routine;
 import com.example.reactdemo.web.model.entity.routine.RoutineRepeat;
@@ -115,6 +117,14 @@ public class RoutineService {
 
             try {
 
+                // 루틴 반복 설정
+                Timestamp repeatStartDt = DateTimeFormatHelper.formatStringToTimestamp(dto.startDtStr(), "yyyy-MM-dd HH:mm:ss");
+                Timestamp repeatEndDt = DateTimeFormatHelper.formatStringToTimestamp(dto.endDtStr(), "yyyy-MM-dd HH:mm:ss");
+
+                // 루틴 설정
+                Timestamp routineStartTime = DateTimeFormatHelper.formatStringToTimestamp(dto.startTimeStr(), "yyyy-MM-dd HH:mm:ss");
+                Timestamp routineEndTime = DateTimeFormatHelper.formatStringToTimestamp(dto.endTimeStr(), "yyyy-MM-dd HH:mm:ss");
+
                 // 1. 루틴 반복 생성
                 RoutineRepeat repeat = new RoutineRepeat();
                 repeat.setRepeatType(dto.repeatType());
@@ -122,8 +132,8 @@ public class RoutineService {
                 repeat.setDayOfMonth(dto.dayOfMonth());
                 repeat.setWeekOfMonth(dto.weekOfMonth());
                 repeat.setDayOfWeekForMonth(String.join(",", dto.repeatDays())); // "월,수,금"
-                repeat.setStartDt(dto.startDt());
-                repeat.setEndDt(dto.endDt());
+                repeat.setStartDt(repeatStartDt);
+                repeat.setEndDt(repeatEndDt);
                 repeat.setUpdateDt(Timestamp.from(Instant.now()));
                 routineRepeatRepository.save(repeat);
 
@@ -132,13 +142,28 @@ public class RoutineService {
                 routine.setTitle(dto.title());
                 routine.setCategory(dto.category());
                 routine.setMemo(dto.memo());
-                routine.setStartTime(dto.startTime());
-                routine.setEndTime(dto.endTime());
+                routine.setStartTime(routineStartTime);
+                routine.setEndTime(routineStartTime);
                 routine.setActive(true);
                 routine.setCreateDt(Timestamp.from(Instant.now()));
                 routine.setUpdateDt(Timestamp.from(Instant.now()));
                 routine.setUser(user);
                 routine.setRoutineRepeat(repeat);
+
+                List<TaskDto> taskList = dto.tasks();
+//                List<Task> tasks = new ArrayList<>();
+//                for (TaskDto t : taskList) {
+//
+//                    Task task = new Task();
+//
+//                    task.setContent(t.content());
+//                    task.setRoutine(routine);
+//                    task.setTaskType(t.taskType());
+//                    task.setGoalCount(t.goalCount());     // 목표 횟수
+//                    task.setTimerInSeconds(t.timerInSeconds()); // 타이머 시간
+//
+//                    tasks.add(task);
+//                }
 
                 // 3. Task 리스트 생성
                 List<Task> tasks = dto.tasks().stream()
@@ -146,6 +171,10 @@ public class RoutineService {
                             Task task = new Task();
                             task.setContent(taskDto.content());
                             task.setRoutine(routine);
+                            task.setTaskType(taskDto.taskType());
+                            task.setGoalCount(taskDto.goalCount());     // 목표 횟수
+                            task.setTimerInSeconds(taskDto.timerInSeconds()); // 타이머 시간
+
                             return task;
                         })
                         .collect(Collectors.toList());
@@ -299,7 +328,7 @@ public class RoutineService {
 
             try {
 
-                task.setCompleted(!task.isCompleted());
+//                task.setCompleted(!task.isCompleted());
 
                 result.isSuccess = true;
                 result.message = "SUCCESS";
@@ -361,6 +390,57 @@ public class RoutineService {
             result.message = "사용자 정보가 없습니다.";
             result.jsonResult = userAccountId;
         }
+        return result;
+    }
+
+    /**
+     * 사용자의 루틴 목록
+     *
+     * @param userAccountId
+     * @return JsonResultApiModel
+     */
+    public JsonResultApiModel getRoutines(String userAccountId) {
+
+        JsonResultApiModel result = new JsonResultApiModel();
+        List<RoutineResponseDto> results = new ArrayList<>();
+
+        try {
+
+            User user = userRepository.findByUserAccountId(userAccountId).orElseThrow();
+            long userId = user.getId();
+            List<Routine> routines = routineRepository.findByUserId(userId);
+            DayOfWeek today = LocalDate.now().getDayOfWeek();   // MONDAY, TUESDAY ...
+            String todayKor = today.getDisplayName(TextStyle.SHORT, Locale.KOREAN);
+
+            results = routines.stream()
+                    .filter(routine -> {
+                        RoutineRepeat repeat = routine.getRoutineRepeat();
+                        if (repeat == null) return false;
+
+                        int repeatType = repeat.getRepeatType(); // 1: 매일, 2: 주중, 3: 주말, 4: 특정 요일
+                        String dayOfWeekStr = repeat.getDayOfWeekForMonth(); // ex: "월,화,금"
+
+                        return switch (repeatType) {
+                            case 1 -> true; // 매일
+                            case 2 -> !Set.of("토", "일").contains(todayKor); // 주중
+                            case 3 -> Set.of("토", "일").contains(todayKor); // 주말
+                            case 4 -> dayOfWeekStr != null && dayOfWeekStr.contains(todayKor); // 특정 요일
+                            default -> false;
+                        };
+                    })
+                    .map(RoutineResponseDto::new)
+                    .collect(Collectors.toList());
+
+            result.jsonResult = results;
+            result.isSuccess = true;
+        } catch (Exception e) {
+
+            logger.error("Excpetion 발생 {}", e);
+            result.isSuccess = false;
+            result.jsonResult = null;
+            result.message = "getRoutines 실행 중 예외 발생";
+        }
+
         return result;
     }
 }

@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, List, Card, Typography, message, Space, Popconfirm, Tag, Progress } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, TrophyOutlined } from '@ant-design/icons';
 import GoalModal from './GoalModal'; // 같은 폴더 내 GoalModal
-import api from '../../utils/api'; // 경로 변경: ../../utils/api
+// import api from '../../utils/api'; // 경로 변경: ../../utils/api
+import api from '../../utils/axiosInstance'; // 경로 변경: ../../utils/axiosInstance
 import '../../styles/GoalList.css'; // 경로 변경: ../../styles/GoalList.css
 
 const { Title, Text } = Typography;
@@ -15,7 +16,13 @@ function GoalList() {
 
     const fetchGoals = useCallback(async () => {
         try {
-            const response = await api.get('/goals');
+            const response = await Promise.all([
+                api.get('/goals', {
+                    headers: {Authorization: `Bearer ${token}`},
+                    // withCredentials: true // ← 쿠키 기반 인증인 경우 필요
+                })
+            ]);
+            
             setGoals(response.data);
         } catch (error) {
             console.error('목표 로드 실패:', error);

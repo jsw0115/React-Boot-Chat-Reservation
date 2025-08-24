@@ -37,21 +37,29 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
-    // 에러 객체에 response가 없을 수 있으니 안전하게 접근
-    const status = error?.response?.status;
-    const originalRequest = error?.config || {};
+        // 에러 객체에 response가 없을 수 있으니 안전하게 접근
+        const status = error?.response?.status;
+        const originalRequest = error?.config || {};
 
-    if (status === 401) {
-        // 로그인 API 자체의 401은 로그인 컴포넌트가 처리하도록 그대로 reject
-        if (originalRequest?.url?.includes('/account/jwtLogin')) {
-            return Promise.reject(error);
+        // 로그인 페이지로 리다이렉트 
+        if (status === 401) {
+            
+            // 로그인 API 자체의 401은 로그인 컴포넌트가 처리하도록 그대로 reject
+            if (originalRequest?.url?.includes('/account/jwtLogin')) {
+                return Promise.reject(error);
+            }
+
+            // 아니면 전역 로그아웃 처리
+            try {
+                removeToken();
+            } catch (e) {
+
+            }
+            // removeToken();
+            message.error('인증이 만료되었습니다. 다시 로그인해주세요.');
+            window.location.href = '/login';
         }
-        // 아니면 전역 로그아웃 처리
-        removeToken();
-        message.error('인증이 만료되었습니다. 다시 로그인해주세요.');
-        window.location.href = '/login';
-    }
-    return Promise.reject(error);
+        return Promise.reject(error);
     }
 );
 

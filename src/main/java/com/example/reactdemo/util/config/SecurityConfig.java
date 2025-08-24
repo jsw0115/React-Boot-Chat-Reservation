@@ -115,6 +115,8 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                 )
+                // 인증 되지 않은 상태에서 접근 시 로그인 페이지로 이동
+                .exceptionHandling(exception -> exception.authenticationEntryPoint((request, response, authException) -> {}))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // JWT는 무상태!
                 );
